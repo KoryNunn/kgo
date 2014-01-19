@@ -1,0 +1,11 @@
+{
+  "name": "kgo",
+  "version": "0.0.0",
+  "description": "Flow control the super easy way",
+  "main": "kgo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD"
+}
