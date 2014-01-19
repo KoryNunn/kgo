@@ -11,17 +11,27 @@ flow contol should be seamless, you should be able to say what you want done, an
 
 kgo is black magic, use it with caution.
 
+    kgo(result name, asynchronous function);
+
+where result name is an arbitrary string that can be concidered a name for the output of the function
+
+and asynchronous function is a function that, when complete, calls a callback with its results.
+
+kgo returns itsself, so it can be chained:
+
+    kgo(name, fn)(name, fn)(name, fn)
+
+## Example
+
 require kgo:
 
     var kgo = require('./kgo');
 
 use kgo:
 
-note: functions ****MUST**** have function names!
+note: functions ****MUST**** have argument names that match the named result of other functions!
 
-another note: functions ****MUST**** have argument names that match the names of other functions!
-
-and another note: functions ****MUST**** define a callback as the last argument.
+another note: functions ****MUST**** define a callback as the last argument.
 
     kgo('things', function(cb){
 
@@ -99,3 +109,15 @@ You can assign error handlers to your functions by name, if you want to.
             // will recieve the Whoops error.
         }
     });
+
+
+
+
+
+There is also a totally safe implementation if you require('kgo/kgoSafe')
+
+The syntax is slightly different:
+
+    kgo(name, [named results], function);
+
+But it is boring.
