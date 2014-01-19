@@ -6,7 +6,7 @@ kgo(function things(cb){
     }, 100);
 })(function stuff(cb){
     setTimeout(function(){
-        cb(null, 2);
+        cb('some error');
     }, 100);
 })(function whatsits(things, stuff, cb){
     setTimeout(function(){
@@ -18,4 +18,6 @@ kgo(function things(cb){
     }, 100);
 })(function majigger(whatsits, dooby, cb){
     console.log(whatsits, dooby);
+}).errors({
+    'stuff': function(error){console.log('stuff errored: ' + error)}
 });

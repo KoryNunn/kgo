@@ -1,4 +1,4 @@
-function runTask(task, results, done){
+function runTask(task, results, aboutToRun, done){
     var name = task.name,
         dependants = task.args,
         taskFunction = task.fn,
@@ -18,6 +18,8 @@ function runTask(task, results, done){
         done(name, error, result);
     });
 
+    aboutToRun(name);
+
     taskFunction.apply(null, args);
 }
 
@@ -25,22 +27,33 @@ function run(tasks, results, throwError){
     var currentTask;
 
     for(var key in tasks){
-        if(key in results){
-            continue;
-        }
-
         currentTask = tasks[key];
 
-        runTask(currentTask, results, function(name, error, result){
-            if(error){
-                throwError(name, error);
-                return;
-            }
+        runTask(currentTask, results, function(name){
+                delete tasks[name];
+            },
+            function(name, error, result){
 
-            results[name] = result;
-            run(tasks, results, throwError);
-        });
+                if(error){
+                    throwError(name, error);
+                    return;
+                }
+
+                results[name] = result;
+                run(tasks, results, throwError);
+            }
+        );
     }
 }
 
-module.exports = run;
+function cloneAndRun(tasks, results, throwError){
+    var todo = {};
+
+    for(var key in tasks){
+        todo[key] = tasks[key];
+    }
+
+    run(todo, results, throwError);
+}
+
+module.exports = cloneAndRun;

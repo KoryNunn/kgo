@@ -18,5 +18,4 @@ kgo('things', function(cb){
     }, 100);
 })('majigger', ['whatsits','dooby'], function(whatsits, dooby, cb){
     console.log(whatsits, dooby);
-    cb();
 });
