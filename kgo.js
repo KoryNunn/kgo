@@ -1,20 +1,24 @@
 var run = require('./run'),
-    fnRegex = /^function\s+?([_\$a-zA-Z][_\$a-zA-Z0-9]*?)\s*\((.*?)\)/;
+    fnRegex = /^function.*?\((.*?)\)/;
 
 function newKgo(){
     var tasks = {},
         results = {},
         errorHandlers;
 
-    function kgoFn(fn){
+    function kgoFn(name, fn){
+        if(typeof name === 'function'){
+            fn = name;
+            name = '';
+        }
+
         var details = fnRegex.exec(fn.toString());
 
         if(!details){
-            throw "Functions must have a name";
+            throw "Functions must have named arguments";
         }
 
-        var name = details[1],
-            args = details[2].split(',');
+        var args = details[1].split(',');
 
         // We don't care about the callback
         args = args.slice(0,-1);
