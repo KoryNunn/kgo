@@ -11,7 +11,7 @@ function newKgo(){
         if(typeof name !== 'string'){
             fn = dependencies;
             dependencies = name;
-            name = (returnlessId++).toString();
+            name = (returnlessId++).toString() + '__returnless';
         }
 
         if(typeof dependencies === 'function'){
