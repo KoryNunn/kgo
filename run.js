@@ -29,11 +29,13 @@ function run(tasks, results, throwError){
     for(var key in tasks){
         currentTask = tasks[key];
 
-        runTask(currentTask, results, function(name){
+        runTask(
+            currentTask,
+            results,
+            function(name){
                 delete tasks[name];
             },
             function(name, error, result){
-
                 if(error){
                     throwError(name, error);
                     return;

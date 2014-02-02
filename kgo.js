@@ -7,30 +7,35 @@ function newKgo(){
         results = {},
         errorHandlers;
 
-    function kgoFn(name, fn){
-        if(typeof name === 'function'){
-            fn = name;
-            name = returnlessId++;
+    function kgoFn(name, dependencies, fn){
+        if(typeof name !== 'string'){
+            fn = dependencies;
+            dependencies = name;
+            name = (returnlessId++).toString();
         }
 
-        var details = fnRegex.exec(fn.toString());
+        if(typeof dependencies === 'function'){
+            fn = dependencies;
 
-        if(!details){
-            throw "Functions must have named arguments";
-        }
+            var details = fnRegex.exec(fn.toString());
 
-        var args = details[1].split(',');
+            if(!details){
+                throw "Functions must have named arguments";
+            }
 
-        // We don't care about the callback
-        args = args.slice(0,-1);
+            dependencies = details[1].split(',');
 
-        for(var i = 0; i < args.length; i++) {
-            args[i] = args[i].trim();
+            // We don't care about the callback
+            dependencies = dependencies.slice(0,-1);
+
+            for(var i = 0; i < dependencies.length; i++) {
+                dependencies[i] = dependencies[i].trim();
+            }
         }
 
         tasks[name] = {
             name: name,
-            args: args,
+            args: dependencies,
             fn: fn
         };
 

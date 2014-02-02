@@ -114,10 +114,10 @@ You can assign error handlers to your functions by name, if you want to.
 
 
 
-There is also a totally safe implementation if you require('kgo/kgoSafe')
+You can also use the totally safe implementation.
 
 The syntax is slightly different:
 
     kgo(name, [named results], function);
 
-But it is boring.
+But that's boring.
