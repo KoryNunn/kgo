@@ -2,14 +2,15 @@ var run = require('./run'),
     fnRegex = /^function.*?\((.*?)\)/;
 
 function newKgo(){
-    var tasks = {},
+    var returnlessId = 0,
+        tasks = {},
         results = {},
         errorHandlers;
 
     function kgoFn(name, fn){
         if(typeof name === 'function'){
             fn = name;
-            name = '';
+            name = returnlessId++;
         }
 
         var details = fnRegex.exec(fn.toString());

@@ -18,4 +18,6 @@ kgo('things', function(cb){
     }, 100);
 })(function(whatsits, dooby, cb){
     console.log(whatsits, dooby);
+})(function(whatsits, cb){
+    console.log(whatsits);
 });
