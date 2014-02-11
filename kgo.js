@@ -5,7 +5,7 @@ function newKgo(){
     var returnlessId = 0,
         tasks = {},
         results = {},
-        errorHandlers;
+        errorHandlers = {};
 
     function kgoFn(name, dependencies, fn){
         if(typeof name !== 'string'){
