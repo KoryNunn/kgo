@@ -16,21 +16,7 @@ function newKgo(){
 
         if(typeof dependencies === 'function'){
             fn = dependencies;
-
-            var details = fnRegex.exec(fn.toString());
-
-            if(!details){
-                throw "Functions must have named arguments";
-            }
-
-            dependencies = details[1].split(',');
-
-            // We don't care about the callback
-            dependencies = dependencies.slice(0,-1);
-
-            for(var i = 0; i < dependencies.length; i++) {
-                dependencies[i] = dependencies[i].trim();
-            }
+            dependencies = [];
         }
 
         tasks[name] = {

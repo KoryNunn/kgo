@@ -8,16 +8,16 @@ kgo('things', function(cb){
     setTimeout(function(){
         cb(null, 2);
     }, 100);
-})('whatsits', function(things, stuff, cb){
+})('whatsits', ['things', 'stuff'], function(things, stuff, cb){
     setTimeout(function(){
         cb(null, things + stuff);
     }, 100);
-})('dooby', function(things, cb){
+})('dooby', ['things'], function(things, cb){
     setTimeout(function(){
         cb(null, things/2);
     }, 100);
-})(function(whatsits, dooby, cb){
+})(['whatsits', 'dooby'], function(whatsits, dooby, cb){
     console.log(whatsits, dooby);
-})(function(whatsits, cb){
+})(['whatsits'], function(whatsits, cb){
     console.log(whatsits);
 });
