@@ -17,7 +17,7 @@ dependencies is an array of strings that map to the output of another function,
 
 and asynchronous function is a function that, when complete, calls a callback with its results.
 
-kgo returns itsself, so it can be chained:
+kgo returns its-self, so it can be chained:
 
     kgo(name, deps, fn)(name, deps, fn)(name, deps, fn)
 
@@ -65,6 +65,26 @@ use kgo:
     });
 
 The above will log 3, 0.5;
+
+You can do an async map over items by setting the count of the items in the callback:
+
+    var items = [1,2,3,4];
+
+    kgo('items', function(cb){
+        cb(null, items);
+    })('doubled', ['items'], function(items, cb){
+
+        // Here we tell kgo that we will be returning an array of results, not just one.
+        this.count(items.length);
+
+        for(var i = 0; i < items.length; i++){
+
+            // Call the callback as usual, but make sure it is called as many times as you said it would be.
+            cb(null, items[i]*2);
+        }
+    })(['doubled'], function(doubled){
+        // Our doubled numbers
+    });
 
 ## Errors
 
