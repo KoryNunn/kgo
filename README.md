@@ -90,13 +90,13 @@ You can do an async map over items by setting the count of the items in the call
 
 Yeah them annoying things.
 
-You can assign error handlers to your functions by name, if you want to.
+kgo has EventEmitter methods on it, so you can bind to 'error'
+
+The handler gets passed the error, and the name of the step that returned the error.
 
     kgo
-    (calles)
-    (more calles)
-    .errors({
-        'stuff':function(error){
-            // will recieve the Whoops error.
-        }
+    (calls)
+    (more calls)
+    .on('error', function(error, stepName){
+
     });

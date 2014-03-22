@@ -56,7 +56,7 @@ function runTask(task, results, aboutToRun, done){
     step.run();
 }
 
-function run(tasks, results, throwError){
+function run(tasks, results, emitter){
     var currentTask;
 
     for(var key in tasks){
@@ -70,25 +70,25 @@ function run(tasks, results, throwError){
             },
             function(name, error, result){
                 if(error){
-                    throwError(name, error);
+                    emitter.emit('error', error, name);
                     return;
                 }
 
                 results[name] = result;
-                run(tasks, results, throwError);
+                run(tasks, results, emitter);
             }
         );
     }
 }
 
-function cloneAndRun(tasks, results, throwError){
+function cloneAndRun(tasks, results, emitter){
     var todo = {};
 
     for(var key in tasks){
         todo[key] = tasks[key];
     }
 
-    run(todo, results, throwError);
+    run(todo, results, emitter);
 }
 
 module.exports = cloneAndRun;

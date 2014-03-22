@@ -1,4 +1,5 @@
 var run = require('./run'),
+    EventEmitter = require('events').EventEmitter,
     fnRegex = /^function.*?\((.*?)\)/;
 
 function newKgo(){
@@ -27,23 +28,14 @@ function newKgo(){
 
         return kgoFn
     };
-
-    kgoFn.errors = function(handlers){
-        errorHandlers = handlers;
-    };
-
-    function kgoError(name, error){
-        var handler = errorHandlers[name];
-
-        if(handler){
-            handler(error);
-        }
+    for(var key in EventEmitter.prototype){
+        kgoFn[key] = EventEmitter.prototype[key];
     }
 
     kgoFn.apply(null, arguments);
 
     setTimeout(function(){
-        run(tasks, results, kgoError);
+        run(tasks, results, kgoFn);
     },0);
 
     return kgoFn;

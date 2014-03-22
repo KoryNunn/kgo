@@ -50,3 +50,18 @@ test('map-parallel', function(t){
         t.equal(doubled[3], 8);
     });
 });
+
+test('errors', function(t){
+    t.plan(2);
+
+    kgo('things', function(cb){
+        doAsync(cb, null, 1);
+    })('stuff', ['things'], function(things, cb){
+        cb(new Error('stuff screwed up'));
+    })(['stuff'], function(stuff, cb){
+        t.equal(stuff, 3);
+    }).on('error', function(error, name){
+        t.equal(name, 'stuff');
+        t.equal(error.message, 'stuff screwed up');
+    });
+});
