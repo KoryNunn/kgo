@@ -1,20 +1,20 @@
 var test = require('grape'),
     kgo = require('../');
 
-function doAsync(cb, error, result){
+function doAsync(done, error, result){
     setTimeout(function(){
-        cb(error, result);
+        done(error, result);
     }, 100);
 }
 
 test('waterfall', function(t){
     t.plan(1);
 
-    kgo('things', function(cb){
-        doAsync(cb, null, 1);
-    })('stuff', ['things'], function(things, cb){
-        doAsync(cb, null, 2 + things);
-    })(['stuff'], function(stuff, cb){
+    kgo('things', function(done){
+        doAsync(done, null, 1);
+    })('stuff', ['things'], function(things, done){
+        doAsync(done, null, 2 + things);
+    })(['stuff'], function(stuff, done){
         t.equal(stuff, 3);
     });
 });
@@ -22,11 +22,11 @@ test('waterfall', function(t){
 test('parallel', function(t){
     t.plan(2);
 
-    kgo('things', function(cb){
-        doAsync(cb, null, 1);
-    })('stuff', function(cb){
-        doAsync(cb, null, 2);
-    })(['things', 'stuff'], function(things, stuff, cb){
+    kgo('things', function(done){
+        doAsync(done, null, 1);
+    })('stuff', function(done){
+        doAsync(done, null, 2);
+    })(['things', 'stuff'], function(things, stuff, done){
         t.equal(things, 1);
         t.equal(stuff, 2);
     });
@@ -37,12 +37,12 @@ test('map-parallel', function(t){
 
     var items = [1,2,3,4];
 
-    kgo('items', function(cb){
-        doAsync(cb, null, items);
-    })('doubled', ['items'], function(items, cb){
+    kgo('items', function(done){
+        doAsync(done, null, items);
+    })('doubled', ['items'], function(items, done){
         this.count(items.length);
         for(var i = 0; i < items.length; i++){
-            doAsync(cb, null, items[i]*2);
+            doAsync(done, null, items[i]*2);
         }
     })(['doubled'], function(doubled){
         t.equal(doubled.length, 4);
@@ -54,14 +54,54 @@ test('map-parallel', function(t){
 test('errors', function(t){
     t.plan(2);
 
-    kgo('things', function(cb){
-        doAsync(cb, null, 1);
-    })('stuff', ['things'], function(things, cb){
-        cb(new Error('stuff screwed up'));
-    })(['stuff'], function(stuff, cb){
+    kgo('things', function(done){
+        doAsync(done, null, 1);
+    })('stuff', ['things'], function(things, done){
+        done(new Error('stuff screwed up'));
+    })(['stuff'], function(stuff, done){
         t.equal(stuff, 3);
     }).on('error', function(error, name){
         t.equal(name, 'stuff');
         t.equal(error.message, 'stuff screwed up');
     });
+});
+
+test('returnless', function(t){
+    t.plan(2);
+
+    kgo
+
+    ('a', function(done){
+        doAsync(done, null, 1);
+    })
+
+    ('b', ['a'], function(a, done){
+        doAsync(done, null, 1);
+    })
+
+    (['b'],  function(b){
+        t.pass('got first task');
+    })
+
+    (['b'], function(b){
+        t.pass('got second task');
+    });
+});
+
+test('ignore dependencies', function(t){
+    t.plan(1);
+
+    kgo
+
+    ('a', function(done){
+        doAsync(done, null, 1);
+    })
+
+    ('b', ['!a'], function(done){
+        doAsync(done, null, 1);
+    })
+
+    (['b'],  function(b){
+        t.equal(b, 1, 'got correct parameter');
+    })
 });

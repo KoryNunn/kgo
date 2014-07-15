@@ -1,7 +1,7 @@
 kgo
 ===
 
-A stupidly easy flow control function.
+Stupidly easy flow control.
 
 ## Why
 
@@ -19,7 +19,10 @@ and asynchronous function is a function that, when complete, calls a callback wi
 
 kgo returns its-self, so it can be chained:
 
-    kgo(name, deps, fn)(name, deps, fn)(name, deps, fn)
+    kgo
+    (name, deps, fn)
+    (name, deps, fn)
+    (name, deps, fn);
 
 ## Example
 
@@ -29,35 +32,40 @@ require kgo:
 
 use kgo:
 
-    kgo('things', function(cb){
+    kgo
+    ('things', function(done){
 
         //Something async
         setTimeout(function(){
-            cb(null, 1);
+            done(null, 1);
         }, 100);
 
-    })('stuff', function(cb){
+    })
+    ('stuff', function(done){
 
         //Something async
         setTimeout(function(){
-            cb(null, 2);
+            done(null, 2);
         }, 100);
 
-    })('whatsits', ['things', 'stuff'], function(things, stuff, cb){
+    })
+    ('whatsits', ['things', 'stuff'], function(things, stuff, done){
 
         //Something async
         setTimeout(function(){
-            cb(null, things + stuff);
+            done(null, things + stuff);
         }, 100);
 
-    })('dooby', ['things'], function(things, cb){
+    })
+    ('dooby', ['things'], function(things, done){
 
         //Something async
         setTimeout(function(){
-            cb(null, things/2);
+            done(null, things/2);
         }, 100);
 
-    })(['whatsits', 'dooby'], function(whatsits, dooby, cb){
+    })
+    (['whatsits', 'dooby'], function(whatsits, dooby, done){
 
         //Done
         console.log(whatsits, dooby);
@@ -66,13 +74,15 @@ use kgo:
 
 The above will log 3, 0.5;
 
+## Async Mapping
+
 You can do an async map over items by setting the count of the items in the callback:
 
     var items = [1,2,3,4];
 
-    kgo('items', function(cb){
-        cb(null, items);
-    })('doubled', ['items'], function(items, cb){
+    kgo('items', function(done){
+        done(null, items);
+    })('doubled', ['items'], function(items, done){
 
         // Here we tell kgo that we will be returning an array of results, not just one.
         this.count(items.length);
@@ -80,11 +90,30 @@ You can do an async map over items by setting the count of the items in the call
         for(var i = 0; i < items.length; i++){
 
             // Call the callback as usual, but make sure it is called as many times as you said it would be.
-            cb(null, items[i]*2);
+            done(null, items[i]*2);
         }
     })(['doubled'], function(doubled){
         // Our doubled numbers
     });
+
+## Ignoring dependency results
+
+You will often not need the result of a dependency, and it's annoying to have unused parameters in your functions.
+You can specify that you have a dependancy, whos result you don't want, by prefixing the dependancy name with an exclamation mark:
+
+    kgo
+
+    ('a', function(done){
+        done(null, 'foo');
+    })
+
+    ('b', ['!a'], function(done){
+        done(null, 'bar');
+    })
+
+    (['b'],  function(b){
+        // here b will be "bar"
+    })
 
 ## Errors
 
@@ -95,8 +124,8 @@ kgo has EventEmitter methods on it, so you can bind to 'error'
 The handler gets passed the error, and the name of the step that returned the error.
 
     kgo
-    (calls)
-    (more calls)
+    (task)
+    (another task)
     .on('error', function(error, stepName){
 
     });

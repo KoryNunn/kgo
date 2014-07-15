@@ -1,3 +1,5 @@
+var ignoreDependency = /^\!.+/;
+
 function Step(task, args, done){
     this._task = task;
     this._args = args;
@@ -40,11 +42,20 @@ function runTask(task, results, aboutToRun, done){
 
     if(dependants){
         for(var i = 0; i < dependants.length; i++) {
-            if(!(dependants[i] in results)){
+            var dependantName = dependants[i],
+                ignore = dependantName.match(ignoreDependency);
+
+            if(ignore){
+                dependantName = dependantName.slice(1);
+            }
+
+            if(!(dependantName in results)){
                 return;
             }
 
-            args.push(results[dependants[i]]);
+            if(!ignore){
+                args.push(results[dependantName]);
+            }
         }
     }
 
