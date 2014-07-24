@@ -6,6 +6,20 @@
   "scripts": {
     "test": "node test"
   },
-  "author": "",
-  "license": "BSD"
+  "author": "Kory Nunn <knunn187@gmail.com>",
+  "license": "MIT",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/korynunn/kgo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/korynunn/kgo/issues"
+  },
+  "homepage": "https://github.com/korynunn/kgo",
+  "devDependencies": {
+    "grape": "^1.0.1"
+  }
 }
