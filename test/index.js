@@ -7,6 +7,14 @@ function doAsync(done, error, result){
     }, 100);
 }
 
+test('no function', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo('things');
+    });
+});
+
 test('waterfall', function(t){
     t.plan(1);
 
