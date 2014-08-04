@@ -20,14 +20,19 @@ function newKgo(){
             dependencies = [];
         }
 
+        if(typeof fn !== 'function'){
+            throw new Error('No function provided for task number ' + Object.keys(tasks).length + ' (' + name + ')');
+        }
+
         tasks[name] = {
             name: name,
             args: dependencies,
             fn: fn
         };
 
-        return kgoFn
-    };
+        return kgoFn;
+    }
+
     for(var key in EventEmitter.prototype){
         kgoFn[key] = EventEmitter.prototype[key];
     }
