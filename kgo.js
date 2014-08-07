@@ -2,19 +2,7 @@ var run = require('./run'),
     EventEmitter = require('events').EventEmitter,
     fnRegex = /^function.*?\((.*?)\)/;
 
-function defer(callback){
-    if (typeof setImmediate === "function"){
-        // In IE10, Node.js 0.9+, or https://github.com/NobleJS/setImmediate
-        setImmediate(function(){
-            callback();
-        });
-        
-    } else {
-        setTimeout(function(){
-            callback();
-        },0);
-    }
-}    
+var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
 function newKgo(){
     var returnlessId = 0,
