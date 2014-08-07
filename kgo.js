@@ -2,6 +2,8 @@ var run = require('./run'),
     EventEmitter = require('events').EventEmitter,
     fnRegex = /^function.*?\((.*?)\)/;
 
+var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
+
 function newKgo(){
     var returnlessId = 0,
         tasks = {},
@@ -39,9 +41,9 @@ function newKgo(){
 
     kgoFn.apply(null, arguments);
 
-    setTimeout(function(){
+    defer(function(){
         run(tasks, results, kgoFn);
-    },0);
+    });
 
     return kgoFn;
 }
