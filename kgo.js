@@ -39,8 +39,8 @@ function newKgo(){
 
     kgoFn.apply(null, arguments);
 
-    if (global.setImmediate){
-        // In IE10, Node.js 0.9+, or perhaps use this? https://github.com/NobleJS/setImmediate
+    if (typeof setImmediate === "function"){
+        // In IE10, Node.js 0.9+, or https://github.com/NobleJS/setImmediate
         setImmediate(function(){
             run(tasks, results, kgoFn);
         });
