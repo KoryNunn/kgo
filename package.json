@@ -23,6 +23,12 @@
     "grape": "^1.0.1"
   },
   "testling": {
-    "files": "./test/index.js"
+    "files": "./test/index.js",
+    "browsers": [
+      "ie/8..latest"
+      "firefox/3.5", "firefox/latest",
+      "chrome/latest",
+      "safari/5..latest"
+    ]
   }
 }
