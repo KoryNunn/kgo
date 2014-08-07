@@ -21,5 +21,8 @@
   "homepage": "https://github.com/korynunn/kgo",
   "devDependencies": {
     "grape": "^1.0.1"
+  },
+  "testling":{
+    "files":"./test/index.js"
   }
 }
