@@ -113,3 +113,70 @@ test('ignore dependencies', function(t){
         t.equal(b, 1, 'got correct parameter');
     })
 });
+
+test('defaults', function(t){
+    t.plan(2);
+
+    kgo
+    ({
+        things: 1,
+        stuff: 2
+    })
+    (['things', 'stuff'], function(things, stuff, done){
+        t.equal(things, 1);
+        t.equal(stuff, 2);
+    });
+});
+
+test('defaults with same taskname', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo
+        ({
+            things: 1,
+            stuff: 2
+        })
+        ('stuff', function(done){
+            doAsync(done, null, 2);
+        })
+        (['things', 'stuff'], function(things, stuff, done){
+            t.fail('task ran but should not have');
+        });
+    }, 'cannot define a task with the same name as that of a default');
+});
+
+test('defaults with same taskname, after task', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo
+        ('stuff', function(done){
+            doAsync(done, null, 2);
+        })
+        ({
+            things: 1,
+            stuff: 2
+        })
+        (['things', 'stuff'], function(things, stuff, done){
+            t.fail('task ran but should not have');
+        });
+    }, 'set defaults containing a key that conflicts with a task name');
+});
+
+test('double defaults', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo
+        ({
+            things: 1
+        })
+        ({
+            stuff: 2
+        })
+        (['things', 'stuff'], function(things, stuff, done){
+            t.fail('task ran but should not have');
+        });
+    }, 'cannot define defaults twice');
+});
