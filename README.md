@@ -115,6 +115,36 @@ You can specify that you have a dependancy, whos result you don't want, by prefi
         // here b will be "bar"
     })
 
+## Defaults
+
+You can define default data for use in later tasks by passing an object into kgo, where the keys in the objects will map to dependency names:
+
+    kgo
+
+    ({
+        foo: 1    
+    })
+
+    ('bar', function(done){
+        done(null, 2);
+    });
+
+    ('baz', ['foo', 'bar'], function(foo, bar, done){
+
+    })
+
+This is especially useful when you want to use named functions that need additional parameters to run:
+
+    var fs = require('fs');
+
+    kgo
+    ({
+        'sourcePath': '/foo/bar'
+    })
+    ('files', ['sourcePath'], fs.readdir)
+
+### Note: You may only define defaults once in a kgo block. Extra calls will result in an error.
+
 ## Errors
 
 Yeah them annoying things.
