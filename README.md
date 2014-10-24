@@ -145,6 +145,21 @@ This is especially useful when you want to use named functions that need additio
 
 ### Note: You may only define defaults once in a kgo block. Extra calls will result in an error.
 
+## Multiple results
+
+You can return more than one result in a single task by giving your task multiple names, and returning more results in the callback
+
+    kgo
+
+    ('foo', 'bar', function(done){
+        done(null, 2, 4);
+    });
+
+    ('baz', ['foo', 'bar'], function(foo, bar, done){
+        // foo === 2
+        // bar === 4
+    })
+
 ## Errors
 
 Yeah them annoying things.
