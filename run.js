@@ -1,5 +1,10 @@
 var ignoreDependency = /^\!.+/;
 
+function rotate90(array){
+  // transpose from http://www.codesuck.com/2012/02/transpose-javascript-array-in-one-line.html
+  return Object.keys(array[0]).map(function (c) { return array.map(function (r) { return r[c]; }); });
+}
+
 function Step(task, args, done){
     this._task = task;
     this._args = args;
@@ -12,8 +17,9 @@ Step.prototype.run = function(){
         results = [],
         didError;
 
-    this._task.fn.apply(this, this._args.concat([function(error, result){
-        results.push(result);
+    this._task.fn.apply(this, this._args.concat([function(error){
+        var stepResults = Array.prototype.slice.call(arguments, 1);
+        results.push(stepResults);
         step._runs++;
         if(error){
             didError = true;
@@ -31,11 +37,11 @@ Step.prototype.done = function(error, results){
     if(error){
         return this._done(error);
     }
-    this._done(null, this._parallel ? results : results[0]);
+    this._done(null, this._parallel ? rotate90(results) : results[0]);
 };
 
 function runTask(task, results, aboutToRun, done){
-    var name = task.name,
+    var names = task.names,
         dependants = task.args,
         taskFunction = task.fn,
         args = [];
@@ -59,11 +65,11 @@ function runTask(task, results, aboutToRun, done){
         }
     }
 
-    var step = new Step(task, args, function(error, result){
-        done(name, error, result);
+    var step = new Step(task, args, function(error, results){
+        done(names, error, results);
     });
 
-    aboutToRun(name);
+    aboutToRun(names);
     step.run();
 }
 
@@ -76,16 +82,19 @@ function run(tasks, results, emitter){
         runTask(
             currentTask,
             results,
-            function(name){
-                delete tasks[name];
+            function(names){
+                delete tasks[names];
             },
-            function(name, error, result){
+            function(names, error, taskResults){
                 if(error){
-                    emitter.emit('error', error, name);
+                    emitter.emit('error', error, names);
                     return;
                 }
 
-                results[name] = result;
+                for(var i = 0; i < names.length; i++){
+                    results[names[i]] = taskResults[i];
+                }
+
                 run(tasks, results, emitter);
             }
         );

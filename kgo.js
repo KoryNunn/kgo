@@ -12,48 +12,64 @@ function newKgo(){
         inFlight,
         defaultsDefined;
 
-    function kgoFn(name, dependencies, fn){
+    function kgoFn(){
         if(inFlight){
             throw "No tasks or defaults may be set after kgo is in flight";
         }
 
-        if(arguments.length === 1 && name !== null && typeof name === 'object'){
+        var argIndex = 0;
+
+        while(typeof arguments[argIndex] === 'string'){
+            argIndex++;
+        }
+
+        var names = Array.prototype.slice.call(arguments, 0, argIndex),
+            dependencies,
+            fn;
+
+        if(!names.length){
+            names.push((returnlessId++).toString() + '__returnless');
+        }
+            
+        if(typeof arguments[argIndex] === 'object' && !Array.isArray(arguments[argIndex])){
+            var defaults = arguments[argIndex];
+
             if(defaultsDefined){
                 throw "Defaults may be defined only once per kgo";
             }
 
-            for(var key in name){
+            for(var key in defaults){
                 if(key in tasks){
                     throw "A task is already defined for " + key;
                 }
-                results[key] = name[key];
+                results[key] = defaults[key];
             }
             defaultsDefined = true;
             return kgoFn;
         }
 
-        if(typeof name !== 'string'){
-            fn = dependencies;
-            dependencies = name;
-            name = (returnlessId++).toString() + '__returnless';
+        if(Array.isArray(arguments[argIndex])){
+            dependencies = arguments[argIndex];
+            argIndex++;
         }
 
-        if(typeof dependencies === 'function'){
-            fn = dependencies;
-            dependencies = [];
+        if(typeof arguments[argIndex] === 'function'){
+            fn = arguments[argIndex];
         }
 
         if(typeof fn !== 'function'){
-            throw new Error('No function provided for task number ' + Object.keys(tasks).length + ' (' + name + ')');
+            throw new Error('No function provided for task number ' + Object.keys(tasks).length + ' (' + names + ')');
         }
 
-        if(name in results){
-            throw "A default with the same name as this task (" + name + ") has already been set";
+        for(var i = 0; i < names.length; i++){
+            if(names[i] in results){
+                throw "A default with the same name as this task (" + names[i] + ") has already been set";
+            }
         }
 
-        tasks[name] = {
-            name: name,
-            args: dependencies,
+        tasks[names] = {
+            names: names,
+            args: dependencies || [],
             fn: fn
         };
 

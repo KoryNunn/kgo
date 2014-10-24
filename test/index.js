@@ -1,9 +1,10 @@
 var test = require('grape'),
     kgo = require('../');
 
-function doAsync(done, error, result){
+function doAsync(done){
+    var args = Array.prototype.slice.call(arguments, 1);
     setTimeout(function(){
-        done(error, result);
+        done.apply(null, args);
     }, 100);
 }
 
@@ -68,8 +69,8 @@ test('errors', function(t){
         done(new Error('stuff screwed up'));
     })(['stuff'], function(stuff, done){
         t.equal(stuff, 3);
-    }).on('error', function(error, name){
-        t.equal(name, 'stuff');
+    }).on('error', function(error, names){
+        t.equal(names[0], 'stuff');
         t.equal(error.message, 'stuff screwed up');
     });
 });
@@ -179,4 +180,44 @@ test('double defaults', function(t){
             t.fail('task ran but should not have');
         });
     }, 'cannot define defaults twice');
+});
+
+test('multiple datas', function(t){
+    t.plan(1);
+
+    kgo
+    ('foo', 'bar', function(done){
+        done(null, 1,2);
+    })
+    (['foo'], function(foo, done){
+        t.equal(foo, 1);
+    });
+    (['bar'], function(bar, done){
+        t.equal(bar, 2);
+    });
+});
+
+test('multiple datas map-parallel', function(t){
+    t.plan(6);
+
+    var items = [1,2,3,4];
+
+    kgo
+    ('items', function(done){
+        doAsync(done, null, items);
+    })
+    ('doubled', 'trippled', ['items'], function(items, done){
+        this.count(items.length);
+        for(var i = 0; i < items.length; i++){
+            doAsync(done, null, items[i]*2, items[i]*3);
+        }
+    })
+    (['doubled', 'trippled'], function(doubled, trippled){
+        t.equal(doubled.length, 4);
+        t.equal(trippled.length, 4);
+        t.equal(doubled[0], 2);
+        t.equal(doubled[3], 8);
+        t.equal(trippled[0], 3);
+        t.equal(trippled[3], 12);
+    });
 });
