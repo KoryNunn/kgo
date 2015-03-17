@@ -70,31 +70,19 @@ use kgo:
         //Done
         console.log(whatsits, dooby);
 
+    })
+    .on('complete', function(){
+        // All dones have been called OR an error occured
+    });
+    .on('error', function(error, stepNames){
+        // handle the error for the given step.
     });
 
 The above will log 3, 0.5;
 
 ## Async Mapping
 
-You can do an async map over items by setting the count of the items in the callback:
-
-    var items = [1,2,3,4];
-
-    kgo('items', function(done){
-        done(null, items);
-    })('doubled', ['items'], function(items, done){
-
-        // Here we tell kgo that we will be returning an array of results, not just one.
-        this.count(items.length);
-
-        for(var i = 0; i < items.length; i++){
-
-            // Call the callback as usual, but make sure it is called as many times as you said it would be.
-            done(null, items[i]*2);
-        }
-    })(['doubled'], function(doubled){
-        // Our doubled numbers
-    });
+Removed as of version 2. Use (foreign)[https://www.npmjs.com/package/foreign] instead.
 
 ## Ignoring dependency results
 
@@ -113,7 +101,7 @@ You can specify that you have a dependancy, whos result you don't want, by prefi
 
     (['b'],  function(b){
         // here b will be "bar"
-    })
+    });
 
 ## Defaults
 
@@ -127,11 +115,11 @@ You can define default data for use in later tasks by passing an object into kgo
 
     ('bar', function(done){
         done(null, 2);
-    });
+    })
 
     ('baz', ['foo', 'bar'], function(foo, bar, done){
 
-    })
+    });
 
 This is especially useful when you want to use named functions that need additional parameters to run:
 
@@ -141,7 +129,7 @@ This is especially useful when you want to use named functions that need additio
     ({
         'sourcePath': '/foo/bar'
     })
-    ('files', ['sourcePath'], fs.readdir)
+    ('files', ['sourcePath'], fs.readdir);
 
 ### Note: You may only define defaults once in a kgo block. Extra calls will result in an error.
 
@@ -153,12 +141,12 @@ You can return more than one result in a single task by giving your task multipl
 
     ('foo', 'bar', function(done){
         done(null, 2, 4);
-    });
+    })
 
     ('baz', ['foo', 'bar'], function(foo, bar, done){
         // foo === 2
         // bar === 4
-    })
+    });
 
 ## Errors
 
@@ -172,5 +160,16 @@ The handler gets passed the error, and the name of the step that returned the er
     (task)
     (another task)
     .on('error', function(error, stepName){
+
+    });
+
+## Complete
+
+the `complete` event will be emitted when either an error has been returned, or all tasks done methods have been called.
+
+    kgo
+    (task)
+    (another task)
+    .on('complete', function(){
 
     });

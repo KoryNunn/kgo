@@ -10,34 +10,25 @@ function Step(task, args, done){
     this._args = args;
     this._done = done;
 }
-Step.prototype._count = 1;
-Step.prototype._runs = 0;
 Step.prototype.run = function(){
     var step = this,
-        results = [],
         didError;
 
     this._task.fn.apply(this, this._args.concat([function(error){
-        var stepResults = Array.prototype.slice.call(arguments, 1);
-        results.push(stepResults);
-        step._runs++;
+        var result = Array.prototype.slice.call(arguments, 1);
         if(error){
             didError = true;
             step.done(error);
-        }else if(!didError && step._runs === step._count){
-            step.done(null, results);
+        }else if(!didError){
+            step.done(null, result);
         }
     }]));
 };
-Step.prototype.count = function(number){
-    this._parallel = true;
-    this._count = number;
-};
-Step.prototype.done = function(error, results){
+Step.prototype.done = function(error, result){
     if(error){
         return this._done(error);
     }
-    this._done(null, this._parallel ? rotate90(results) : results[0]);
+    this._done(null, result);
 };
 
 function runTask(task, results, aboutToRun, done){
@@ -74,9 +65,15 @@ function runTask(task, results, aboutToRun, done){
 }
 
 function run(tasks, results, emitter){
-    var currentTask;
+    var currentTask,
+        noMoreTasks = true;
+
+    if(emitter._complete){
+        return;
+    }
 
     for(var key in tasks){
+        noMoreTasks = false;
         currentTask = tasks[key];
 
         runTask(
@@ -86,8 +83,13 @@ function run(tasks, results, emitter){
                 delete tasks[names];
             },
             function(names, error, taskResults){
+                if(emitter._complete){
+                    return;
+                }
                 if(error){
+                    emitter._complete = true;
                     emitter.emit('error', error, names);
+                    emitter.emit('complete');
                     return;
                 }
 
@@ -98,6 +100,11 @@ function run(tasks, results, emitter){
                 run(tasks, results, emitter);
             }
         );
+    }
+
+    if(noMoreTasks){
+        emitter._complete = true;
+        emitter.emit('complete');
     }
 }
 

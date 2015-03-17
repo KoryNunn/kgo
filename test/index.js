@@ -17,7 +17,7 @@ test('no function', function(t){
 });
 
 test('waterfall', function(t){
-    t.plan(1);
+    t.plan(2);
 
     kgo('things', function(done){
         doAsync(done, null, 1);
@@ -25,11 +25,15 @@ test('waterfall', function(t){
         doAsync(done, null, 2 + things);
     })(['stuff'], function(stuff, done){
         t.equal(stuff, 3);
+        done();
+    })
+    .on('complete', function(){
+        t.pass();
     });
 });
 
 test('parallel', function(t){
-    t.plan(2);
+    t.plan(3);
 
     kgo('things', function(done){
         doAsync(done, null, 1);
@@ -38,30 +42,15 @@ test('parallel', function(t){
     })(['things', 'stuff'], function(things, stuff, done){
         t.equal(things, 1);
         t.equal(stuff, 2);
-    });
-});
-
-test('map-parallel', function(t){
-    t.plan(3);
-
-    var items = [1,2,3,4];
-
-    kgo('items', function(done){
-        doAsync(done, null, items);
-    })('doubled', ['items'], function(items, done){
-        this.count(items.length);
-        for(var i = 0; i < items.length; i++){
-            doAsync(done, null, items[i]*2);
-        }
-    })(['doubled'], function(doubled){
-        t.equal(doubled.length, 4);
-        t.equal(doubled[0], 2);
-        t.equal(doubled[3], 8);
+        done();
+    })
+    .on('complete', function(){
+        t.pass();
     });
 });
 
 test('errors', function(t){
-    t.plan(2);
+    t.plan(3);
 
     kgo('things', function(done){
         doAsync(done, null, 1);
@@ -69,14 +58,36 @@ test('errors', function(t){
         done(new Error('stuff screwed up'));
     })(['stuff'], function(stuff, done){
         t.equal(stuff, 3);
+        done();
     }).on('error', function(error, names){
         t.equal(names[0], 'stuff');
         t.equal(error.message, 'stuff screwed up');
+    })
+    .on('complete', function(){
+        t.pass();
+    });
+});
+
+test('multiple errors', function(t){
+    t.plan(2);
+
+    kgo
+    ('foo', function(done){
+        doAsync(done, new Error('foo screwed up'), 1);
+    })
+    ('bar', function(done){
+        doAsync(done, new Error('bar screwed up'), 1);
+    })
+    .on('error', function(error, names){
+        t.pass();
+    })
+    .on('complete', function(){
+        t.pass();
     });
 });
 
 test('returnless', function(t){
-    t.plan(2);
+    t.plan(3);
 
     kgo
 
@@ -88,17 +99,22 @@ test('returnless', function(t){
         doAsync(done, null, 1);
     })
 
-    (['b'],  function(b){
+    (['b'],  function(b, done){
         t.pass('got first task');
+        done();
     })
 
-    (['b'], function(b){
+    (['b'], function(b, done){
         t.pass('got second task');
+        done();
+    })
+    .on('complete', function(){
+        t.pass();
     });
 });
 
 test('ignore dependencies', function(t){
-    t.plan(1);
+    t.plan(2);
 
     kgo
 
@@ -110,13 +126,17 @@ test('ignore dependencies', function(t){
         doAsync(done, null, 1);
     })
 
-    (['b'],  function(b){
+    (['b'],  function(b, done){
         t.equal(b, 1, 'got correct parameter');
+        done();
     })
+    .on('complete', function(){
+        t.pass();
+    });
 });
 
 test('defaults', function(t){
-    t.plan(2);
+    t.plan(3);
 
     kgo
     ({
@@ -126,6 +146,10 @@ test('defaults', function(t){
     (['things', 'stuff'], function(things, stuff, done){
         t.equal(things, 1);
         t.equal(stuff, 2);
+        done();
+    })
+    .on('complete', function(){
+        t.pass();
     });
 });
 
@@ -143,6 +167,7 @@ test('defaults with same taskname', function(t){
         })
         (['things', 'stuff'], function(things, stuff, done){
             t.fail('task ran but should not have');
+            done();
         });
     }, 'cannot define a task with the same name as that of a default');
 });
@@ -161,6 +186,7 @@ test('defaults with same taskname, after task', function(t){
         })
         (['things', 'stuff'], function(things, stuff, done){
             t.fail('task ran but should not have');
+            done();
         });
     }, 'set defaults containing a key that conflicts with a task name');
 });
@@ -178,12 +204,13 @@ test('double defaults', function(t){
         })
         (['things', 'stuff'], function(things, stuff, done){
             t.fail('task ran but should not have');
+            done();
         });
     }, 'cannot define defaults twice');
 });
 
 test('multiple datas', function(t){
-    t.plan(1);
+    t.plan(3);
 
     kgo
     ('foo', 'bar', function(done){
@@ -191,33 +218,13 @@ test('multiple datas', function(t){
     })
     (['foo'], function(foo, done){
         t.equal(foo, 1);
-    });
+        done();
+    })
     (['bar'], function(bar, done){
         t.equal(bar, 2);
-    });
-});
-
-test('multiple datas map-parallel', function(t){
-    t.plan(6);
-
-    var items = [1,2,3,4];
-
-    kgo
-    ('items', function(done){
-        doAsync(done, null, items);
+        done();
     })
-    ('doubled', 'trippled', ['items'], function(items, done){
-        this.count(items.length);
-        for(var i = 0; i < items.length; i++){
-            doAsync(done, null, items[i]*2, items[i]*3);
-        }
-    })
-    (['doubled', 'trippled'], function(doubled, trippled){
-        t.equal(doubled.length, 4);
-        t.equal(trippled.length, 4);
-        t.equal(doubled[0], 2);
-        t.equal(doubled[3], 8);
-        t.equal(trippled[0], 3);
-        t.equal(trippled[3], 12);
+    .on('complete', function(){
+        t.pass();
     });
 });
