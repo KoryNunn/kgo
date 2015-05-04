@@ -102,7 +102,7 @@ function run(tasks, results, emitter){
         );
     }
 
-    if(noMoreTasks){
+    if(noMoreTasks && Object.keys(results).length === emitter._taskCount){
         emitter._complete = true;
         emitter.emit('complete');
     }
@@ -111,8 +111,11 @@ function run(tasks, results, emitter){
 function cloneAndRun(tasks, results, emitter){
     var todo = {};
 
+    emitter._taskCount = Object.keys(results).length;
+
     for(var key in tasks){
         todo[key] = tasks[key];
+        emitter._taskCount += todo[key].names.length;
     }
 
     run(todo, results, emitter);

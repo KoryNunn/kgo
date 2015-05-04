@@ -228,3 +228,34 @@ test('multiple datas', function(t){
         t.pass();
     });
 });
+
+test('complete', function(t){
+    t.plan(3);
+
+    var a,b,c;
+
+    kgo
+    (function(done){
+        setTimeout(function(){
+            a = 1;
+            done();
+        },100);
+    })
+    (function(done){
+        setTimeout(function(){
+            b = 2;
+            done();
+        },100);
+    })
+    (function(done){
+        setTimeout(function(){
+            c = 3;
+            done();
+        },100);
+    })
+    .on('complete', function(){
+        t.equal(a,1);
+        t.equal(b,2);
+        t.equal(c,3);
+    });
+});
