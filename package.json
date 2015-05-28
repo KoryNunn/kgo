@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/korynunn/kgo",
   "devDependencies": {
-    "grape": "^1.0.1"
+    "grape": "^1.0.1",
+    "tape": "^4.0.0"
   },
   "testling": {
     "files": "./test/index.js",

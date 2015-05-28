@@ -14,7 +14,7 @@ function newKgo(){
 
     function kgoFn(){
         if(inFlight){
-            throw "No tasks or defaults may be set after kgo is in flight";
+            throw 'No tasks or defaults may be set after kgo is in flight';
         }
 
         var argIndex = 0;
@@ -35,12 +35,12 @@ function newKgo(){
             var defaults = arguments[argIndex];
 
             if(defaultsDefined){
-                throw "Defaults may be defined only once per kgo";
+                throw 'Defaults may be defined only once per kgo';
             }
 
             for(var key in defaults){
                 if(key in tasks){
-                    throw "A task is already defined for " + key;
+                    throw 'A task is already defined for ' + key;
                 }
                 results[key] = defaults[key];
             }
@@ -63,15 +63,31 @@ function newKgo(){
 
         for(var i = 0; i < names.length; i++){
             if(names[i] in results){
-                throw "A default with the same name as this task (" + names[i] + ") has already been set";
+                throw 'A default with the same name as this task (' + names[i] + ') has already been set';
             }
         }
 
-        tasks[names] = {
-            names: names,
-            args: dependencies || [],
-            fn: fn
-        };
+        if(!dependencies){
+            dependencies = [];
+        }
+
+        dependencies.map(function(dependency){
+            if(typeof dependency !== 'string'){
+                throw 'dependency was not a string: ' + dependency + ' in task: ' + names;
+            }
+        });
+
+        names.map(function(name){
+            if(name in tasks){
+                throw 'A task with the same name (' + name + ') is aready defined';
+            }
+
+            tasks[name] = {
+                names: names,
+                args: dependencies,
+                fn: fn
+            };
+        });
 
         return kgoFn;
     }

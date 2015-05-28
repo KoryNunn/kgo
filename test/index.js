@@ -1,4 +1,4 @@
-var test = require('grape'),
+var test = require('tape'),
     kgo = require('../');
 
 function doAsync(done){
@@ -258,4 +258,19 @@ test('complete', function(t){
         t.equal(b,2);
         t.equal(c,3);
     });
+});
+
+test('stupid dep list', function(t){
+    t.plan(1);
+
+    t.throws(
+        function(){
+            kgo
+            ('foo', 'bar', function(done) {
+                done(null, 1, 2);
+            })
+            (['foo', ['bar']], function(){});
+        }, 
+        /dependency was not a string: bar in task: 0__returnless/
+    );
 });

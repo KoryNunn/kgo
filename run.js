@@ -80,7 +80,9 @@ function run(tasks, results, emitter){
             currentTask,
             results,
             function(names){
-                delete tasks[names];
+                names.map(function(name){
+                    delete tasks[name];
+                });
             },
             function(names, error, taskResults){
                 if(emitter._complete){
@@ -115,7 +117,17 @@ function cloneAndRun(tasks, results, emitter){
 
     for(var key in tasks){
         todo[key] = tasks[key];
-        emitter._taskCount += todo[key].names.length;
+        emitter._taskCount ++;
+    }
+
+    // check for missing dependencies
+    for(var key in tasks){
+        tasks[key].args.map(function(dependencyName){
+            dependencyName = dependencyName.split('!').pop();
+            if(!(dependencyName in tasks) && !(dependencyName in results)){
+                throw 'No task or result has been defined for dependency: ' + dependencyName;
+            }
+        });
     }
 
     run(todo, results, emitter);
