@@ -270,7 +270,22 @@ test('stupid dep list', function(t){
                 done(null, 1, 2);
             })
             (['foo', ['bar']], function(){});
-        }, 
+        },
         /dependency was not a string: bar in task: 0__returnless/
     );
+});
+
+test('task with missing dep', function(t){
+    t.plan(1);
+
+    var d = require('domain').create();
+
+    d.on('error', function(error){
+        t.equal(error, 'No task or result has been defined for dependency: foo');
+    });
+
+    d.run(function(){
+        kgo
+        (['foo'], function(){});
+    });
 });
