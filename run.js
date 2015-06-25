@@ -125,7 +125,7 @@ function cloneAndRun(tasks, results, emitter){
         tasks[key].args.map(function(dependencyName){
             dependencyName = dependencyName.split('!').pop();
             if(!(dependencyName in tasks) && !(dependencyName in results)){
-                throw 'No task or result has been defined for dependency: ' + dependencyName;
+                throw  new Error('No task or result has been defined for dependency: ' + dependencyName);
             }
         });
     }
