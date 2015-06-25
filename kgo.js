@@ -11,6 +11,10 @@ function newKgo(){
         defaultsDefined;
 
     function kgoFn(){
+        if(!arguments.length){
+            throw new Error('kgo must must be called with a task or defaults');
+        }
+
         if(inFlight){
             throw new Error('No tasks or defaults may be set after kgo is in flight');
         }

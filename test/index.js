@@ -290,3 +290,20 @@ test('task with missing dependency', function(t){
         (['foo'], function(){});
     });
 });
+
+test('must have argmuents', function(t){
+    t.plan(2);
+
+    t.throws(
+        function(){
+            kgo();
+        },
+        /kgo must must be called with a task or defaults/
+    );
+    t.throws(
+        function(){
+            kgo({})();
+        },
+        /kgo must must be called with a task or defaults/
+    );
+});
