@@ -1,6 +1,6 @@
 {
   "name": "kgo",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Flow control the super easy way",
   "main": "kgo.js",
   "scripts": {
@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/korynunn/kgo",
   "devDependencies": {
-    "grape": "^1.0.1",
     "tape": "^4.0.0"
   },
   "testling": {

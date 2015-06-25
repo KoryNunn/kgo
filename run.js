@@ -1,10 +1,5 @@
 var ignoreDependency = /^\!.+/;
 
-function rotate90(array){
-  // transpose from http://www.codesuck.com/2012/02/transpose-javascript-array-in-one-line.html
-  return Object.keys(array[0]).map(function (c) { return array.map(function (r) { return r[c]; }); });
-}
-
 function Step(task, args, done){
     this._task = task;
     this._args = args;
@@ -34,7 +29,6 @@ Step.prototype.done = function(error, result){
 function runTask(task, results, aboutToRun, done){
     var names = task.names,
         dependants = task.args,
-        taskFunction = task.fn,
         args = [];
 
     if(dependants){
@@ -115,19 +109,18 @@ function cloneAndRun(tasks, results, emitter){
 
     emitter._taskCount = Object.keys(results).length;
 
+    function checkDependencyIsDefined(dependencyName){
+        dependencyName = dependencyName.split('!').pop();
+        if(!(dependencyName in tasks) && !(dependencyName in results)){
+            throw  new Error('No task or result has been defined for dependency: ' + dependencyName);
+        }
+    }
+
     for(var key in tasks){
         todo[key] = tasks[key];
         emitter._taskCount ++;
-    }
 
-    // check for missing dependencies
-    for(var key in tasks){
-        tasks[key].args.map(function(dependencyName){
-            dependencyName = dependencyName.split('!').pop();
-            if(!(dependencyName in tasks) && !(dependencyName in results)){
-                throw 'No task or result has been defined for dependency: ' + dependencyName;
-            }
-        });
+        tasks[key].args.map(checkDependencyIsDefined);
     }
 
     run(todo, results, emitter);

@@ -78,7 +78,7 @@ test('multiple errors', function(t){
     ('bar', function(done){
         doAsync(done, new Error('bar screwed up'), 1);
     })
-    .on('error', function(error, names){
+    .on('error', function(){
         t.pass();
     })
     .on('complete', function(){
@@ -275,17 +275,35 @@ test('stupid dep list', function(t){
     );
 });
 
-test('task with missing dep', function(t){
-    t.plan(1);
+test('task with missing dependency', function(t){
+    t.plan(2);
 
     var d = require('domain').create();
 
     d.on('error', function(error){
-        t.equal(error, 'No task or result has been defined for dependency: foo');
+        t.ok(error instanceof Error, 'error is instance of Error');
+        t.equal(error.message, 'No task or result has been defined for dependency: foo');
     });
 
     d.run(function(){
         kgo
         (['foo'], function(){});
     });
+});
+
+test('must have argmuents', function(t){
+    t.plan(2);
+
+    t.throws(
+        function(){
+            kgo();
+        },
+        /kgo must must be called with a task or defaults/
+    );
+    t.throws(
+        function(){
+            kgo({})();
+        },
+        /kgo must must be called with a task or defaults/
+    );
 });
