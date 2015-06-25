@@ -1,6 +1,5 @@
 var run = require('./run'),
-    EventEmitter = require('events').EventEmitter,
-    fnRegex = /^function.*?\((.*?)\)/;
+    EventEmitter = require('events').EventEmitter;
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -8,7 +7,6 @@ function newKgo(){
     var returnlessId = 0,
         tasks = {},
         results = {},
-        errorHandlers = {},
         inFlight,
         defaultsDefined;
 

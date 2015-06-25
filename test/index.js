@@ -78,7 +78,7 @@ test('multiple errors', function(t){
     ('bar', function(done){
         doAsync(done, new Error('bar screwed up'), 1);
     })
-    .on('error', function(error, names){
+    .on('error', function(){
         t.pass();
     })
     .on('complete', function(){
@@ -276,12 +276,13 @@ test('stupid dep list', function(t){
 });
 
 test('task with missing dep', function(t){
-    t.plan(1);
+    t.plan(2);
 
     var d = require('domain').create();
 
     d.on('error', function(error){
-        t.equal(error, 'No task or result has been defined for dependency: foo');
+        t.ok(error instanceof Error, 'error is instance of Error');
+        t.equal(error.message, 'No task or result has been defined for dependency: foo');
     });
 
     d.run(function(){
