@@ -275,7 +275,7 @@ test('stupid dep list', function(t){
     );
 });
 
-test('task with missing dep', function(t){
+test('task with missing dependency', function(t){
     t.plan(2);
 
     var d = require('domain').create();
