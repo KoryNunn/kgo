@@ -110,7 +110,8 @@ function cloneAndRun(tasks, results, emitter){
     emitter._taskCount = Object.keys(results).length;
 
     function checkDependencyIsDefined(dependencyName){
-        dependencyName = dependencyName.split('!').pop();
+        dependencyName = dependencyName.match(/\!?(.*)/)[1];
+
         if(!(dependencyName in tasks) && !(dependencyName in results)){
             throw  new Error('No task or result has been defined for dependency: ' + dependencyName);
         }

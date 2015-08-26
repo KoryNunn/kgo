@@ -291,6 +291,22 @@ test('task with missing dependency', function(t){
     });
 });
 
+test('tasks with ! in dependency name', function(t){
+    t.plan(2);
+
+    kgo
+    ('fo!o', function(done){
+        done(null, 'foo');
+    })
+    ('ba!r', ['fo!o'], function(foo, done){
+        t.equal(foo, 'foo');
+        done(null, 'bar');
+    })
+    (['!fo!o', 'ba!r'], function(bar){
+        t.equal(bar, 'bar');
+    });
+});
+
 test('must have argmuents', function(t){
     t.plan(2);
 
