@@ -260,6 +260,36 @@ test('complete', function(t){
     });
 });
 
+test('error handler pass', function(t){
+    t.plan(2);
+
+    kgo
+    ('result', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    (['*error', 'result'], function(error, result){
+        t.notOk(error);
+        t.ok(result);
+    });
+});
+
+test('error handler fail', function(t){
+    t.plan(2);
+
+    kgo
+    ('result', function(done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*error', 'result'], function(error, result){
+        t.ok(error);
+        t.notOk(result);
+    });
+});
+
 test('stupid dep list', function(t){
     t.plan(1);
 

@@ -1,4 +1,5 @@
-var ignoreDependency = /^\!.+/;
+var ignoreDependency = /^\!.+/,
+    errorTask = '*error';
 
 function Step(task, args, done){
     this._task = task;
@@ -26,21 +27,32 @@ Step.prototype.done = function(error, result){
     this._done(null, result);
 };
 
-function runTask(task, results, aboutToRun, done){
+function runTask(task, results, aboutToRun, done, error){
     var names = task.names,
         dependants = task.args,
-        args = [];
+        args = [],
+        passError;
 
     if(dependants){
+        var useError = error && dependants[0] === errorTask;
+        if(useError){
+            args.push(error);
+        }
+
         for(var i = 0; i < dependants.length; i++) {
             var dependantName = dependants[i],
                 ignore = dependantName.match(ignoreDependency);
+
+            if(!useError && dependants[i] === errorTask){
+                args.push(undefined);
+                continue;
+            }
 
             if(ignore){
                 dependantName = dependantName.slice(1);
             }
 
-            if(!(dependantName in results)){
+            if(!useError && !(dependantName in results)){
                 return;
             }
 
@@ -58,7 +70,7 @@ function runTask(task, results, aboutToRun, done){
     step.run();
 }
 
-function run(tasks, results, emitter){
+function run(tasks, results, emitter, error){
     var currentTask,
         noMoreTasks = true;
 
@@ -78,13 +90,14 @@ function run(tasks, results, emitter){
                     delete tasks[name];
                 });
             },
-            function(names, error, taskResults){
+            function(names, taskError, taskResults){
                 if(emitter._complete){
                     return;
                 }
-                if(error){
+                if(taskError){
+                    run(tasks, results, emitter, taskError);
                     emitter._complete = true;
-                    emitter.emit('error', error, names);
+                    emitter.emit('error', taskError, names);
                     emitter.emit('complete');
                     return;
                 }
@@ -94,7 +107,8 @@ function run(tasks, results, emitter){
                 }
 
                 run(tasks, results, emitter);
-            }
+            },
+            error
         );
     }
 
@@ -105,23 +119,30 @@ function run(tasks, results, emitter){
 }
 
 function cloneAndRun(tasks, results, emitter){
-    var todo = {};
+    var todo = {},
+        hasErrorTask;
 
     emitter._taskCount = Object.keys(results).length;
 
-    function checkDependencyIsDefined(dependencyName){
+    function checkDependencyIsDefined(result, dependencyName){
         dependencyName = dependencyName.match(/\!?(.*)/)[1];
 
-        if(!(dependencyName in tasks) && !(dependencyName in results)){
-            throw  new Error('No task or result has been defined for dependency: ' + dependencyName);
+        if(dependencyName !== errorTask && !(dependencyName in tasks) && !(dependencyName in results)){
+            throw new Error('No task or result has been defined for dependency: ' + dependencyName);
         }
+
+        return result || dependencyName === errorTask;
     }
 
     for(var key in tasks){
         todo[key] = tasks[key];
         emitter._taskCount ++;
 
-        tasks[key].args.map(checkDependencyIsDefined);
+        hasErrorTask = tasks[key].args.reduce(checkDependencyIsDefined, false) || hasErrorTask;
+    }
+
+    if(hasErrorTask){
+        emitter.on('error', function(){});
     }
 
     run(todo, results, emitter);
