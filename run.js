@@ -81,13 +81,9 @@ function runTask(task, results, aboutToRun, done, error){
     step.run();
 }
 
-function run(tasks, results, emitter, error){
+function run(tasks, results, kgo, error){
     var currentTask,
         noMoreTasks = true;
-
-    if(emitter._complete){
-        return;
-    }
 
     for(var key in tasks){
         noMoreTasks = false;
@@ -102,14 +98,8 @@ function run(tasks, results, emitter, error){
                 });
             },
             function(names, taskError, taskResults){
-                if(emitter._complete){
-                    return;
-                }
                 if(taskError){
-                    run(tasks, results, emitter, taskError);
-                    emitter._complete = true;
-                    emitter.emit('error', taskError, names);
-                    emitter.emit('complete');
+                    run(tasks, results, kgo, taskError);
                     return;
                 }
 
@@ -117,46 +107,34 @@ function run(tasks, results, emitter, error){
                     results[names[i]] = taskResults[i];
                 }
 
-                run(tasks, results, emitter);
+                run(tasks, results, kgo);
             },
             error
         );
     }
-
-    if(noMoreTasks && Object.keys(results).length === emitter._taskCount){
-        emitter._complete = true;
-        emitter.emit('complete');
-    }
 }
 
-function cloneAndRun(tasks, results, emitter){
-    var todo = {},
-        hasErrorTask;
+function cloneAndRun(tasks, results, kgo){
+    var todo = {};
 
-    emitter._taskCount = Object.keys(results).length;
+    kgo._taskCount = Object.keys(results).length;
 
-    function checkDependencyIsDefined(result, dependencyName){
+    function checkDependencyIsDefined(dependencyName){
         dependencyName = dependencyName.match(/\!?(.*)/)[1];
 
         if(dependencyName !== errorTask && !(dependencyName in tasks) && !(dependencyName in results)){
             throw new Error('No task or result has been defined for dependency: ' + dependencyName);
         }
-
-        return result || dependencyName === errorTask;
     }
 
     for(var key in tasks){
         todo[key] = tasks[key];
-        emitter._taskCount ++;
+        kgo._taskCount ++;
 
-        hasErrorTask = tasks[key].args.reduce(checkDependencyIsDefined, false) || hasErrorTask;
+        tasks[key].args.map(checkDependencyIsDefined);
     }
 
-    if(hasErrorTask){
-        emitter.on('error', function(){});
-    }
-
-    run(todo, results, emitter);
+    run(todo, results, kgo);
 }
 
 module.exports = cloneAndRun;

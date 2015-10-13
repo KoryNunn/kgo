@@ -1,5 +1,4 @@
-var run = require('./run'),
-    EventEmitter = require('events').EventEmitter;
+var run = require('./run');
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -92,10 +91,6 @@ function newKgo(){
         });
 
         return kgoFn;
-    }
-
-    for(var key in EventEmitter.prototype){
-        kgoFn[key] = EventEmitter.prototype[key];
     }
 
     kgoFn.apply(null, arguments);
