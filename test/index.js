@@ -273,7 +273,7 @@ test('error handler pass', function(t){
             done(null, true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.notOk(error);
         t.ok(result);
     });
@@ -288,7 +288,7 @@ test('error handler fail', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -308,11 +308,11 @@ test('error handler fail different step', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial'], function(error, initial){
+    (['*', 'initial'], function(error, initial){
         t.ok(initial);
         t.notOk(error);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -332,7 +332,7 @@ test('error handler fail not passed successful results', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial', 'result'], function(error, initial, result){
+    (['*', 'initial', 'result'], function(error, initial, result){
         t.ok(error);
         t.notOk(initial);
         t.notOk(result);
@@ -348,10 +348,10 @@ test('multiple error handlers', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error, 'result handler got error');
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.ok(error, 'error only handler got error');
     });
 });
@@ -373,7 +373,7 @@ test('generic error handlers', function(t){
     (['result'], function(result){
         t.ok(result);
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.fail();
     });
 });
@@ -392,7 +392,7 @@ test('complete style error handling', function(t){
             done(null, initial);
         }, 100);
     })
-    (['*error', '!result'], function(error, shouldBeDoneFn){
+    (['*', '!result'], function(error, shouldBeDoneFn){
         t.notOk(error);
         t.equal(typeof shouldBeDoneFn, 'function');
     });
@@ -460,4 +460,18 @@ test('must have argmuents', function(t){
         },
         /kgo must must be called with a task or defaults/
     );
+});
+
+test('must have argmuents', function(t){
+    t.plan(1);
+
+    function someTask(done){
+        done(new Error('bang'));
+    }
+
+    kgo
+    ('someTask', someTask)
+    (['*'], function(error){
+        t.notOk(~error.stack.indexOf('kgo'));
+    });
 });

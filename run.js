@@ -1,5 +1,7 @@
-var ignoreDependency = /^\!.+/,
-    errorTask = '*error';
+var stackSlice = require('stack-slice'),
+    ignoreDependency = /^\!.+/,
+    errorDependency = /^\*/,
+    errorSymbol = '*';
 
 function Step(task, args, done){
     this._task = task;
@@ -22,6 +24,9 @@ Step.prototype.run = function(){
 };
 Step.prototype.done = function(error, result){
     if(error){
+        if(error instanceof Error){
+            stackSlice(error, __dirname, true);
+        }
         return this._done(error);
     }
     this._done(null, result);
@@ -34,14 +39,14 @@ function runTask(task, results, aboutToRun, done, error){
         passError;
 
     if(dependants){
-        var useError = dependants[0] === errorTask;
+        var useError = dependants[0] === errorSymbol;
 
         if(useError && !error && dependants.length === 1){
             return;
         }
 
         for(var i = 0; i < dependants.length; i++) {
-            var isErrorDep = dependants[i] === errorTask,
+            var isErrorDep = dependants[i] === errorSymbol,
                 dependantName = dependants[i],
                 ignore = dependantName.match(ignoreDependency);
 
@@ -138,11 +143,11 @@ function cloneAndRun(tasks, results, emitter){
     function checkDependencyIsDefined(result, dependencyName){
         dependencyName = dependencyName.match(/\!?(.*)/)[1];
 
-        if(dependencyName !== errorTask && !(dependencyName in tasks) && !(dependencyName in results)){
+        if(dependencyName !== errorSymbol && !(dependencyName in tasks) && !(dependencyName in results)){
             throw new Error('No task or result has been defined for dependency: ' + dependencyName);
         }
 
-        return result || dependencyName === errorTask;
+        return result || dependencyName === errorSymbol;
     }
 
     for(var key in tasks){
