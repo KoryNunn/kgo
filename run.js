@@ -1,5 +1,6 @@
 var ignoreDependency = /^\!.+/,
-    errorTask = '*error';
+    errorDependency = /^\*/,
+    errorSymbol = '*';
 
 function Step(task, args, done){
     this._task = task;
@@ -7,17 +8,11 @@ function Step(task, args, done){
     this._done = done;
 }
 Step.prototype.run = function(){
-    var step = this,
-        didError;
+    var step = this;
 
     this._task.fn.apply(this, this._args.concat([function(error){
         var result = Array.prototype.slice.call(arguments, 1);
-        if(error){
-            didError = true;
-            step.done(error);
-        }else if(!didError){
-            step.done(null, result);
-        }
+        step.done(error, result);
     }]));
 };
 Step.prototype.done = function(error, result){
@@ -27,49 +22,68 @@ Step.prototype.done = function(error, result){
     this._done(null, result);
 };
 
-function runTask(task, results, aboutToRun, done, error){
+function runTask(task, results, errors, aboutToRun, done){
     var names = task.names,
         dependants = task.args,
         args = [],
-        passError;
+        passError,
+        error = errors[errorSymbol],
+        numDeps = 0,
+        metDeps = 0,
+        allDepsMet;
 
     if(dependants){
-        var useError = dependants[0] === errorTask;
-
-        if(useError && !error && dependants.length === 1){
-            return;
-        }
+        var useError,
+            hasError;
 
         for(var i = 0; i < dependants.length; i++) {
-            var isErrorDep = dependants[i] === errorTask,
-                dependantName = dependants[i],
+            var dependantName = dependants[i],
+                isErrorDep = dependantName.match(errorDependency),
                 ignore = dependantName.match(ignoreDependency);
 
             if(isErrorDep){
-                args.push(error);
+                useError = true;
+                hasError = hasError || dependantName in errors;
                 continue;
-            }
-
-            if(useError && error){
-                args.push(undefined);
-                continue;
-            }
-
-            if(error){
-                return;
             }
 
             if(ignore){
                 dependantName = dependantName.slice(1);
             }
 
-            if(!(dependantName in results)){
-                return;
+            numDeps++;
+
+            if(dependantName in results){
+                metDeps++;
+            }
+        }
+
+        allDepsMet = numDeps === metDeps;
+
+        if(!allDepsMet && !hasError || !numDeps && useError && !hasError || !hasError && error){
+            return;
+        }
+
+        for(var i = 0; i < dependants.length; i++) {
+            var dependantName = dependants[i],
+                isErrorDep = dependantName.match(errorDependency),
+                ignore = dependantName.match(ignoreDependency);
+
+            if(isErrorDep){
+                args.push(errors[dependantName]);
+                continue;
             }
 
-            if(!ignore){
-                args.push(results[dependantName]);
+            if(hasError){
+                args.push(undefined);
+                continue;
             }
+
+            if(ignore){
+                continue;
+            }
+
+            args.push(results[dependantName]);
         }
     }
 
@@ -81,13 +95,9 @@ function runTask(task, results, aboutToRun, done, error){
     step.run();
 }
 
-function run(tasks, results, emitter, error){
+function run(tasks, results, errors, kgo){
     var currentTask,
         noMoreTasks = true;
-
-    if(emitter._complete){
-        return;
-    }
 
     for(var key in tasks){
         noMoreTasks = false;
@@ -96,67 +106,53 @@ function run(tasks, results, emitter, error){
         runTask(
             currentTask,
             results,
+            errors,
             function(names){
                 names.map(function(name){
                     delete tasks[name];
                 });
             },
             function(names, taskError, taskResults){
-                if(emitter._complete){
-                    return;
-                }
-                if(taskError){
-                    run(tasks, results, emitter, taskError);
-                    emitter._complete = true;
-                    emitter.emit('error', taskError, names);
-                    emitter.emit('complete');
-                    return;
+                if(taskError && !errors[errorSymbol]){
+                    errors[errorSymbol] = taskError;
                 }
 
                 for(var i = 0; i < names.length; i++){
-                    results[names[i]] = taskResults[i];
+                    if(taskError){
+                        errors[errorSymbol + names[i]] = taskError;
+                    }else{
+                        results[names[i]] = taskResults[i];
+                    }
                 }
 
-                run(tasks, results, emitter);
-            },
-            error
+                run(tasks, results, errors, kgo);
+            }
         );
-    }
-
-    if(noMoreTasks && Object.keys(results).length === emitter._taskCount){
-        emitter._complete = true;
-        emitter.emit('complete');
     }
 }
 
-function cloneAndRun(tasks, results, emitter){
+function cloneAndRun(tasks, results, kgo){
     var todo = {},
-        hasErrorTask;
+        errors = {};
 
-    emitter._taskCount = Object.keys(results).length;
+    kgo._taskCount = Object.keys(results).length;
 
-    function checkDependencyIsDefined(result, dependencyName){
-        dependencyName = dependencyName.match(/\!?(.*)/)[1];
+    function checkDependencyIsDefined(dependencyName){
+        var taskName = dependencyName.match(/[!*]?(.*)/)[1];
 
-        if(dependencyName !== errorTask && !(dependencyName in tasks) && !(dependencyName in results)){
-            throw new Error('No task or result has been defined for dependency: ' + dependencyName);
+        if(dependencyName !== errorSymbol && !(taskName in tasks) && !(taskName in results)){
+            throw new Error('No task or result has been defined for dependency: ' + taskName);
         }
-
-        return result || dependencyName === errorTask;
     }
 
     for(var key in tasks){
         todo[key] = tasks[key];
-        emitter._taskCount ++;
+        kgo._taskCount ++;
 
-        hasErrorTask = tasks[key].args.reduce(checkDependencyIsDefined, false) || hasErrorTask;
+        tasks[key].args.map(checkDependencyIsDefined);
     }
 
-    if(hasErrorTask){
-        emitter.on('error', function(){});
-    }
-
-    run(todo, results, emitter);
+    run(todo, results, errors, kgo);
 }
 
 module.exports = cloneAndRun;

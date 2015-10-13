@@ -21,13 +21,14 @@ test('waterfall', function(t){
 
     kgo('things', function(done){
         doAsync(done, null, 1);
-    })('stuff', ['things'], function(things, done){
-        doAsync(done, null, 2 + things);
-    })(['stuff'], function(stuff, done){
-        t.equal(stuff, 3);
-        done();
+
     })
-    .on('complete', function(){
+    ('stuff', ['things'], function(things, done){
+        doAsync(done, null, 2 + things);
+
+    })
+    (['stuff'], function(stuff){
+        t.equal(stuff, 3);
         t.pass();
     });
 });
@@ -37,87 +38,20 @@ test('parallel', function(t){
 
     kgo('things', function(done){
         doAsync(done, null, 1);
-    })('stuff', function(done){
+
+    })
+    ('stuff', function(done){
         doAsync(done, null, 2);
-    })(['things', 'stuff'], function(things, stuff, done){
+
+    })
+    (['things', 'stuff'], function(things, stuff){
         t.equal(things, 1);
         t.equal(stuff, 2);
-        done();
-    })
-    .on('complete', function(){
-        t.pass();
-    });
-});
-
-test('errors', function(t){
-    t.plan(3);
-
-    kgo
-    ('things', function(done){
-        doAsync(done, null, 1);
-    })
-    ('stuff', ['things'], function(things, done){
-        done(new Error('stuff screwed up'));
-    })
-    (['stuff'], function(stuff, done){
-        t.equal(stuff, 3);
-        done();
-    })
-    .on('error', function(error, names){
-        t.equal(names[0], 'stuff');
-        t.equal(error.message, 'stuff screwed up');
-    })
-    .on('complete', function(){
-        t.pass();
-    });
-});
-
-test('multiple errors', function(t){
-    t.plan(2);
-
-    kgo
-    ('foo', function(done){
-        doAsync(done, new Error('foo screwed up'), 1);
-    })
-    ('bar', function(done){
-        doAsync(done, new Error('bar screwed up'), 1);
-    })
-    .on('error', function(){
-        t.pass();
-    })
-    .on('complete', function(){
         t.pass();
     });
 });
 
 test('returnless', function(t){
-    t.plan(3);
-
-    kgo
-
-    ('a', function(done){
-        doAsync(done, null, 1);
-    })
-
-    ('b', ['a'], function(a, done){
-        doAsync(done, null, 1);
-    })
-
-    (['b'],  function(b, done){
-        t.pass('got first task');
-        done();
-    })
-
-    (['b'], function(b, done){
-        t.pass('got second task');
-        done();
-    })
-    .on('complete', function(){
-        t.pass();
-    });
-});
-
-test('ignore dependencies', function(t){
     t.plan(2);
 
     kgo
@@ -125,35 +59,43 @@ test('ignore dependencies', function(t){
     ('a', function(done){
         doAsync(done, null, 1);
     })
+    ('b', ['a'], function(a, done){
+        doAsync(done, null, 1);
+    })
+    (['b'],  function(b){
+        t.pass('got first task');
+    })
+    (['b'], function(b){
+        t.pass('got second task');
+    })
+});
 
+test('ignore dependencies', function(t){
+    t.plan(1);
+
+    kgo
+    ('a', function(done){
+        doAsync(done, null, 1);
+    })
     ('b', ['!a'], function(done){
         doAsync(done, null, 1);
     })
-
-    (['b'],  function(b, done){
+    (['b'],  function(b){
         t.equal(b, 1, 'got correct parameter');
-        done();
     })
-    .on('complete', function(){
-        t.pass();
-    });
 });
 
 test('defaults', function(t){
-    t.plan(3);
+    t.plan(2);
 
     kgo
     ({
         things: 1,
         stuff: 2
     })
-    (['things', 'stuff'], function(things, stuff, done){
+    (['things', 'stuff'], function(things, stuff){
         t.equal(things, 1);
         t.equal(stuff, 2);
-        done();
-    })
-    .on('complete', function(){
-        t.pass();
     });
 });
 
@@ -213,8 +155,22 @@ test('double defaults', function(t){
     }, 'cannot define defaults twice');
 });
 
+test('double tasks', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo
+        ('foo', function(done){
+            done();
+        })
+        ('foo', function(done){
+            done();
+        })
+    }, 'cannot define tasks twice');
+});
+
 test('multiple datas', function(t){
-    t.plan(3);
+    t.plan(2);
 
     kgo
     ('foo', 'bar', function(done){
@@ -224,43 +180,8 @@ test('multiple datas', function(t){
         t.equal(foo, 1);
         done();
     })
-    (['bar'], function(bar, done){
+    (['bar'], function(bar){
         t.equal(bar, 2);
-        done();
-    })
-    .on('complete', function(){
-        t.pass();
-    });
-});
-
-test('complete', function(t){
-    t.plan(3);
-
-    var a,b,c;
-
-    kgo
-    (function(done){
-        setTimeout(function(){
-            a = 1;
-            done();
-        },100);
-    })
-    (function(done){
-        setTimeout(function(){
-            b = 2;
-            done();
-        },100);
-    })
-    (function(done){
-        setTimeout(function(){
-            c = 3;
-            done();
-        },100);
-    })
-    .on('complete', function(){
-        t.equal(a,1);
-        t.equal(b,2);
-        t.equal(c,3);
     });
 });
 
@@ -273,7 +194,7 @@ test('error handler pass', function(t){
             done(null, true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.notOk(error);
         t.ok(result);
     });
@@ -288,7 +209,7 @@ test('error handler fail', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -308,11 +229,11 @@ test('error handler fail different step', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial'], function(error, initial){
+    (['*', 'initial'], function(error, initial){
         t.ok(initial);
         t.notOk(error);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -332,7 +253,7 @@ test('error handler fail not passed successful results', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial', 'result'], function(error, initial, result){
+    (['*', 'initial', 'result'], function(error, initial, result){
         t.ok(error);
         t.notOk(initial);
         t.notOk(result);
@@ -348,10 +269,10 @@ test('multiple error handlers', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error, 'result handler got error');
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.ok(error, 'error only handler got error');
     });
 });
@@ -373,7 +294,7 @@ test('generic error handlers', function(t){
     (['result'], function(result){
         t.ok(result);
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.fail();
     });
 });
@@ -392,10 +313,80 @@ test('complete style error handling', function(t){
             done(null, initial);
         }, 100);
     })
-    (['*error', '!result'], function(error, shouldBeDoneFn){
+    (['*', '!result'], function(error, shouldBeDoneFn){
         t.notOk(error);
         t.equal(typeof shouldBeDoneFn, 'function');
     });
+});
+
+test('task after error', function(t){
+    t.plan(2);
+
+    kgo
+    ('initial', function(done){
+        done();
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*', 'result'], function(error, result){
+        t.ok(error);
+        t.notOk(result);
+    })
+    ('foo', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done();
+        }, 200);
+    })
+    (['foo'], function(error, shouldBeDoneFn){
+        t.fail();
+    });
+});
+
+test('multiple named errors', function(t){
+    t.plan(2);
+
+    kgo
+    ('task1', function(done){
+        done();
+    })
+    ('task2', function(done){
+        done();
+    })
+    ('result', ['task1'], function(task1, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*task1','*task2','result'], function(task1error, task2error, result){
+        t.fail();
+    })
+    (['*task1','*result'], function(task1error, resultError){
+        t.notOk(task1error);
+        t.ok(resultError);
+    })
+});
+
+test('multiple named errors 2', function(t){
+    t.plan(3);
+
+    kgo
+    ('task1', function(done){
+        done(true);
+    })
+    ('task2', function(done){
+        done();
+    })
+    ('result', ['task1'], function(task1, done){
+        t.fail();
+    })
+    (['*task1','*task2','result'], function(task1error, task2error, result){
+        t.ok(task1error);
+        t.notOk(task2error);
+        t.notOk(result);
+    })
 });
 
 test('stupid dep list', function(t){
@@ -426,6 +417,30 @@ test('task with missing dependency', function(t){
     d.run(function(){
         kgo
         (['foo'], function(){});
+    });
+});
+
+test('after in flight', function(t){
+    t.plan(2);
+
+    var d = require('domain').create();
+
+    d.on('error', function(error){
+        t.ok(error instanceof Error, 'error is instance of Error');
+        t.equal(error.message, 'No tasks or defaults may be set after kgo is in flight');
+    });
+
+    d.run(function(){
+        var x = kgo
+        ('foo', function(done){
+            setTimeout(done, 100);
+        });
+
+        setTimeout(function(){
+            x('bar', function(done){
+                done();
+            })
+        }, 50)
     });
 });
 
