@@ -1,4 +1,5 @@
-var ignoreDependency = /^\!.+/,
+var stackSlice = require('stack-slice'),
+    ignoreDependency = /^\!.+/,
     errorDependency = /^\*/,
     errorSymbol = '*';
 
@@ -17,6 +18,9 @@ Step.prototype.run = function(){
 };
 Step.prototype.done = function(error, result){
     if(error){
+        if(error instanceof Error){
+            stackSlice(error, __dirname, true);
+        }
         return this._done(error);
     }
     this._done(null, result);

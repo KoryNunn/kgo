@@ -35,5 +35,8 @@
       "ipad/6",
       "android-browser/latest"
     ]
+  },
+  "dependencies": {
+    "stack-slice": "^1.0.0"
   }
 }
