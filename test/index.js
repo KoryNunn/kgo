@@ -52,14 +52,18 @@ test('parallel', function(t){
 test('errors', function(t){
     t.plan(3);
 
-    kgo('things', function(done){
+    kgo
+    ('things', function(done){
         doAsync(done, null, 1);
-    })('stuff', ['things'], function(things, done){
+    })
+    ('stuff', ['things'], function(things, done){
         done(new Error('stuff screwed up'));
-    })(['stuff'], function(stuff, done){
+    })
+    (['stuff'], function(stuff, done){
         t.equal(stuff, 3);
         done();
-    }).on('error', function(error, names){
+    })
+    .on('error', function(error, names){
         t.equal(names[0], 'stuff');
         t.equal(error.message, 'stuff screwed up');
     })
@@ -257,6 +261,140 @@ test('complete', function(t){
         t.equal(a,1);
         t.equal(b,2);
         t.equal(c,3);
+    });
+});
+
+test('error handler pass', function(t){
+    t.plan(2);
+
+    kgo
+    ('result', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    (['*error', 'result'], function(error, result){
+        t.notOk(error);
+        t.ok(result);
+    });
+});
+
+test('error handler fail', function(t){
+    t.plan(2);
+
+    kgo
+    ('result', function(done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*error', 'result'], function(error, result){
+        t.ok(error);
+        t.notOk(result);
+    });
+});
+
+test('error handler fail different step', function(t){
+    t.plan(4);
+
+    kgo
+    ('initial', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*error', 'initial'], function(error, initial){
+        t.ok(initial);
+        t.notOk(error);
+    })
+    (['*error', 'result'], function(error, result){
+        t.ok(error);
+        t.notOk(result);
+    });
+});
+
+test('error handler fail not passed successful results', function(t){
+    t.plan(3);
+
+    kgo
+    ('initial', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*error', 'initial', 'result'], function(error, initial, result){
+        t.ok(error);
+        t.notOk(initial);
+        t.notOk(result);
+    });
+});
+
+test('multiple error handlers', function(t){
+    t.plan(2);
+
+    kgo
+    ('result', function(done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*error', 'result'], function(error, result){
+        t.ok(error, 'result handler got error');
+    })
+    (['*error'], function(error){
+        t.ok(error, 'error only handler got error');
+    });
+});
+
+test('generic error handlers', function(t){
+    t.plan(1);
+
+    kgo
+    ('initial', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(null, initial);
+        }, 100);
+    })
+    (['result'], function(result){
+        t.ok(result);
+    })
+    (['*error'], function(error){
+        t.fail();
+    });
+});
+
+test('complete style error handling', function(t){
+    t.plan(2);
+
+    kgo
+    ('initial', function(done){
+        setTimeout(function(){
+            done(null, true);
+        }, 100);
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(null, initial);
+        }, 100);
+    })
+    (['*error', '!result'], function(error, shouldBeDoneFn){
+        t.notOk(error);
+        t.equal(typeof shouldBeDoneFn, 'function');
     });
 });
 

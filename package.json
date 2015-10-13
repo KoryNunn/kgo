@@ -4,7 +4,8 @@
   "description": "Flow control the super easy way",
   "main": "kgo.js",
   "scripts": {
-    "test": "node test"
+    "test": "node test",
+    "watch": "watchify test/index.js -o test/index.browser.js -d"
   },
   "author": "Kory Nunn <knunn187@gmail.com>",
   "license": "MIT",
