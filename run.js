@@ -34,25 +34,36 @@ function runTask(task, results, aboutToRun, done, error){
         passError;
 
     if(dependants){
-        var useError = error && dependants[0] === errorTask;
-        if(useError){
-            args.push(error);
+        var useError = dependants[0] === errorTask;
+
+        if(useError && !error && dependants.length === 1){
+            return;
         }
 
         for(var i = 0; i < dependants.length; i++) {
-            var dependantName = dependants[i],
+            var isErrorDep = dependants[i] === errorTask,
+                dependantName = dependants[i],
                 ignore = dependantName.match(ignoreDependency);
 
-            if(!useError && dependants[i] === errorTask){
+            if(isErrorDep){
+                args.push(error);
+                continue;
+            }
+
+            if(useError && error){
                 args.push(undefined);
                 continue;
+            }
+
+            if(error){
+                return;
             }
 
             if(ignore){
                 dependantName = dependantName.slice(1);
             }
 
-            if(!useError && !(dependantName in results)){
+            if(!(dependantName in results)){
                 return;
             }
 
