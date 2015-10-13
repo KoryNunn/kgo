@@ -160,7 +160,7 @@ kgo
 
 ## Errors
 
-there is an implicit taskName, `*error`, that will resolve a task that depends on if, even if it has other unresolved dependencies.
+there is an implicit taskName, `*error`, that will resolve any task that depends on it, even if it has other unresolved dependencies.
 
 ``` javascript
 kgo
