@@ -155,6 +155,20 @@ test('double defaults', function(t){
     }, 'cannot define defaults twice');
 });
 
+test('double tasks', function(t){
+    t.plan(1);
+
+    t.throws(function(){
+        kgo
+        ('foo', function(done){
+            done();
+        })
+        ('foo', function(done){
+            done();
+        })
+    }, 'cannot define tasks twice');
+});
+
 test('multiple datas', function(t){
     t.plan(2);
 
@@ -180,7 +194,7 @@ test('error handler pass', function(t){
             done(null, true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.notOk(error);
         t.ok(result);
     });
@@ -195,7 +209,7 @@ test('error handler fail', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -215,11 +229,11 @@ test('error handler fail different step', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial'], function(error, initial){
+    (['*', 'initial'], function(error, initial){
         t.ok(initial);
         t.notOk(error);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error);
         t.notOk(result);
     });
@@ -239,7 +253,7 @@ test('error handler fail not passed successful results', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'initial', 'result'], function(error, initial, result){
+    (['*', 'initial', 'result'], function(error, initial, result){
         t.ok(error);
         t.notOk(initial);
         t.notOk(result);
@@ -255,10 +269,10 @@ test('multiple error handlers', function(t){
             done(true);
         }, 100);
     })
-    (['*error', 'result'], function(error, result){
+    (['*', 'result'], function(error, result){
         t.ok(error, 'result handler got error');
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.ok(error, 'error only handler got error');
     });
 });
@@ -280,7 +294,7 @@ test('generic error handlers', function(t){
     (['result'], function(result){
         t.ok(result);
     })
-    (['*error'], function(error){
+    (['*'], function(error){
         t.fail();
     });
 });
@@ -299,10 +313,80 @@ test('complete style error handling', function(t){
             done(null, initial);
         }, 100);
     })
-    (['*error', '!result'], function(error, shouldBeDoneFn){
+    (['*', '!result'], function(error, shouldBeDoneFn){
         t.notOk(error);
         t.equal(typeof shouldBeDoneFn, 'function');
     });
+});
+
+test('task after error', function(t){
+    t.plan(2);
+
+    kgo
+    ('initial', function(done){
+        done();
+    })
+    ('result', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*', 'result'], function(error, result){
+        t.ok(error);
+        t.notOk(result);
+    })
+    ('foo', ['initial'], function(initial, done){
+        setTimeout(function(){
+            done();
+        }, 200);
+    })
+    (['foo'], function(error, shouldBeDoneFn){
+        t.fail();
+    });
+});
+
+test('multiple named errors', function(t){
+    t.plan(2);
+
+    kgo
+    ('task1', function(done){
+        done();
+    })
+    ('task2', function(done){
+        done();
+    })
+    ('result', ['task1'], function(task1, done){
+        setTimeout(function(){
+            done(true);
+        }, 100);
+    })
+    (['*task1','*task2','result'], function(task1error, task2error, result){
+        t.fail();
+    })
+    (['*task1','*result'], function(task1error, resultError){
+        t.notOk(task1error);
+        t.ok(resultError);
+    })
+});
+
+test('multiple named errors 2', function(t){
+    t.plan(3);
+
+    kgo
+    ('task1', function(done){
+        done(true);
+    })
+    ('task2', function(done){
+        done();
+    })
+    ('result', ['task1'], function(task1, done){
+        t.fail();
+    })
+    (['*task1','*task2','result'], function(task1error, task2error, result){
+        t.ok(task1error);
+        t.notOk(task2error);
+        t.notOk(result);
+    })
 });
 
 test('stupid dep list', function(t){
@@ -333,6 +417,30 @@ test('task with missing dependency', function(t){
     d.run(function(){
         kgo
         (['foo'], function(){});
+    });
+});
+
+test('after in flight', function(t){
+    t.plan(2);
+
+    var d = require('domain').create();
+
+    d.on('error', function(error){
+        t.ok(error instanceof Error, 'error is instance of Error');
+        t.equal(error.message, 'No tasks or defaults may be set after kgo is in flight');
+    });
+
+    d.run(function(){
+        var x = kgo
+        ('foo', function(done){
+            setTimeout(done, 100);
+        });
+
+        setTimeout(function(){
+            x('bar', function(done){
+                done();
+            })
+        }, 50)
     });
 });
 

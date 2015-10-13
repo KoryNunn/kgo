@@ -160,6 +160,24 @@ kgo
 
 ## Errors
 
+You can handler errors from specific tasknames by prefixing the taskname with an astrix (*)
+
+
+``` javascript
+kgo
+('task1', task1)
+('task2', task2)
+(['*task1'], function(tast1error){
+    // Called if task1 errored
+})
+(['*task2'], function(tast2error){
+    // Called if task2 errored
+})
+(['task1', 'task2'], function(result1, result2){
+    // Called if task1 and task2 succeded.
+});
+```
+
 there is an implicit taskName, `*error`, that will resolve any task that depends on it, even if it has other unresolved dependencies.
 
 ``` javascript
