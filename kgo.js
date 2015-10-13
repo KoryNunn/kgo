@@ -36,12 +36,12 @@ function newKgo(){
             var defaults = arguments[argIndex];
 
             if(defaultsDefined){
-                throw  new Error('Defaults may be defined only once per kgo');
+                throw new Error('Defaults may be defined only once per kgo');
             }
 
             for(var key in defaults){
                 if(key in tasks){
-                    throw  new Error('A task is already defined for ' + key);
+                    throw new Error('A task is already defined for ' + key);
                 }
                 results[key] = defaults[key];
             }
@@ -64,7 +64,7 @@ function newKgo(){
 
         for(var i = 0; i < names.length; i++){
             if(names[i] in results){
-                throw  new Error('A default with the same name as this task (' + names[i] + ') has already been set');
+                throw new Error('A default with the same name as this task (' + names[i] + ') has already been set');
             }
         }
 
@@ -74,13 +74,13 @@ function newKgo(){
 
         dependencies.map(function(dependency){
             if(typeof dependency !== 'string'){
-                throw  new Error('dependency was not a string: ' + dependency + ' in task: ' + names);
+                throw new Error('dependency was not a string: ' + dependency + ' in task: ' + names);
             }
         });
 
         names.map(function(name){
             if(name in tasks){
-                throw  new Error('A task with the same name (' + name + ') is aready defined');
+                throw new Error('A task with the same name (' + name + ') is aready defined');
             }
 
             tasks[name] = {

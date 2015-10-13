@@ -476,3 +476,17 @@ test('must have argmuents', function(t){
         /kgo must must be called with a task or defaults/
     );
 });
+
+test('must have argmuents', function(t){
+    t.plan(1);
+
+    function someTask(done){
+        done(new Error('bang'));
+    }
+
+    kgo
+    ('someTask', someTask)
+    (['*'], function(error){
+        t.notOk(~error.stack.indexOf('kgo'));
+    });
+});
