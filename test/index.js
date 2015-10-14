@@ -90,6 +90,24 @@ test('multiple errors', function(t){
     });
 });
 
+test('multiple errors 2', function(t){
+    t.plan(2);
+
+    kgo
+    ('foo', function(done){
+        done(new Error('foo screwed up'));
+    })
+    ('bar', function(done){
+        done(new Error('bar screwed up'));
+    })
+    .on('error', function(){
+        t.pass();
+    })
+    .on('complete', function(){
+        t.pass();
+    });
+});
+
 test('returnless', function(t){
     t.plan(3);
 
