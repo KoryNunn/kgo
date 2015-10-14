@@ -1,6 +1,5 @@
 var stackSlice = require('stack-slice'),
     ignoreDependency = /^\!.+/,
-    errorDependency = /^\*/,
     errorSymbol = '*';
 
 function Step(task, args, done){
@@ -35,8 +34,7 @@ Step.prototype.done = function(error, result){
 function runTask(task, results, aboutToRun, done, error){
     var names = task.names,
         dependants = task.args,
-        args = [],
-        passError;
+        args = [];
 
     if(dependants){
         var useError = dependants[0] === errorSymbol;
@@ -113,8 +111,10 @@ function run(tasks, results, emitter, error){
                 if(taskError){
                     run(tasks, results, emitter, taskError);
                     emitter._complete = true;
-                    emitter.emit('error', taskError, names);
-                    emitter.emit('complete');
+                    if(!error){
+                        emitter.emit('error', taskError, names);
+                        emitter.emit('complete');
+                    }
                     return;
                 }
 
