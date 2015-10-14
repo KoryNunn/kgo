@@ -1,6 +1,6 @@
 {
   "name": "kgo",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Flow control the super easy way",
   "main": "kgo.js",
   "scripts": {
