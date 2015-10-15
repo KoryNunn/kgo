@@ -89,7 +89,7 @@ Removed as of version 2. Use [foreign](https://www.npmjs.com/package/foreign) in
 ## Ignoring dependency results
 
 You will often not need the result of a dependency, and it's annoying to have unused parameters in your functions.
-You can specify that you have a dependancy, whos result you don't want, by prefixing the dependancy name with an exclamation mark:
+You can specify that you have a dependency, whos result you don't want, by prefixing the dependency name with an exclamation mark:
 
 ``` javascript
 kgo
@@ -158,10 +158,24 @@ kgo
 });
 ```
 
+## kgo.sync
+
+Sometimes you want to just run a synchonous function as a step in kgo, to do this you can use `kgo.sync`, which will return a callback-passing-style version.
+
+``` javascript
+
+kgo
+('task1', task1);
+('task2', ['task1'], kgo.sync(function(x){ return x + 1 }))
+('task3', ['task2'], task3);
+
+```
+
 ## Errors
 
 You can handler errors from specific tasknames by prefixing the taskname with an astrix (*)
 
+any task that has a dependency on any error task will resolve if any error dependency is resolved.
 
 ``` javascript
 kgo
@@ -178,13 +192,13 @@ kgo
 });
 ```
 
-there is an implicit taskName, `*error`, that will resolve any task that depends on it, even if it has other unresolved dependencies.
+there is an implicit error task, `*`, that will resolve to the first of any error that occurs.
 
 ``` javascript
 kgo
 (task)
 (another task)
-(['*error'], function(error){
+(['*'], function(error){
     // Called if any error occurs in any task
 });
 ```
@@ -198,7 +212,7 @@ function doThings(callback){
     ('task1', ...)
     ('task2', ...)
     ('result', ['task1', 'task2'], ...)
-    (['*error', 'result'], callback); // Will be called either if any task errors, OR if result resolves.
+    (['*', 'result'], callback); // Will be called either if any task errors, OR if result resolves.
 
 }
 ```
