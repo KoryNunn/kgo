@@ -1,4 +1,5 @@
-var run = require('./run');
+var run = require('./run'),
+    cpsenize = require('cpsenize');
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -104,3 +105,4 @@ function newKgo(){
 }
 
 module.exports = newKgo;
+module.exports.sync = cpsenize;
