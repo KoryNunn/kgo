@@ -1,7 +1,6 @@
 var stackSlice = require('stack-slice'),
-    ignoreDependency = /^\!.+/,
-    errorDependency = /^\*/,
-    errorSymbol = '*';
+    symbols = require('./symbols');
+
 
 function Step(task, args, done){
     this._task = task;
@@ -30,8 +29,7 @@ function runTask(task, results, errors, aboutToRun, done){
     var names = task.names,
         dependants = task.args,
         args = [],
-        passError,
-        error = errors[errorSymbol],
+        error = errors[symbols.errorSymbol],
         numDeps = 0,
         metDeps = 0,
         allDepsMet;
@@ -42,8 +40,8 @@ function runTask(task, results, errors, aboutToRun, done){
 
         for(var i = 0; i < dependants.length; i++) {
             var dependantName = dependants[i],
-                isErrorDep = dependantName.match(errorDependency),
-                ignore = dependantName.match(ignoreDependency);
+                isErrorDep = dependantName.match(symbols.errorDependency),
+                ignore = dependantName.match(symbols.ignoreDependency);
 
             if(isErrorDep){
                 useError = true;
@@ -70,8 +68,8 @@ function runTask(task, results, errors, aboutToRun, done){
 
         for(var i = 0; i < dependants.length; i++) {
             var dependantName = dependants[i],
-                isErrorDep = dependantName.match(errorDependency),
-                ignore = dependantName.match(ignoreDependency);
+                isErrorDep = dependantName.match(symbols.errorDependency),
+                ignore = dependantName.match(symbols.ignoreDependency);
 
             if(isErrorDep){
                 args.push(errors[dependantName]);
@@ -117,13 +115,13 @@ function run(tasks, results, errors, kgo){
                 });
             },
             function(names, taskError, taskResults){
-                if(taskError && !errors[errorSymbol]){
-                    errors[errorSymbol] = taskError;
+                if(taskError && !errors[symbols.errorSymbol]){
+                    errors[symbols.errorSymbol] = taskError;
                 }
 
                 for(var i = 0; i < names.length; i++){
                     if(taskError){
-                        errors[errorSymbol + names[i]] = taskError;
+                        errors[symbols.errorSymbol + names[i]] = taskError;
                     }else{
                         results[names[i]] = taskResults[i];
                     }
@@ -144,7 +142,7 @@ function cloneAndRun(tasks, results, kgo){
     function checkDependencyIsDefined(dependencyName){
         var taskName = dependencyName.match(/[!*]?(.*)/)[1];
 
-        if(dependencyName !== errorSymbol && !(taskName in tasks) && !(taskName in results)){
+        if(dependencyName !== symbols.errorSymbol && !(taskName in tasks) && !(taskName in results)){
             throw new Error('No task or result has been defined for dependency: ' + taskName);
         }
     }

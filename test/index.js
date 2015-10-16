@@ -62,12 +62,12 @@ test('returnless', function(t){
     ('b', ['a'], function(a, done){
         doAsync(done, null, 1);
     })
-    (['b'],  function(b){
+    (['b'],  function(){
         t.pass('got first task');
     })
-    (['b'], function(b){
+    (['b'], function(){
         t.pass('got second task');
-    })
+    });
 });
 
 test('ignore dependencies', function(t){
@@ -82,7 +82,7 @@ test('ignore dependencies', function(t){
     })
     (['b'],  function(b){
         t.equal(b, 1, 'got correct parameter');
-    })
+    });
 });
 
 test('defaults', function(t){
@@ -165,7 +165,7 @@ test('double tasks', function(t){
         })
         ('foo', function(done){
             done();
-        })
+        });
     }, 'cannot define tasks twice');
 });
 
@@ -269,7 +269,7 @@ test('multiple error handlers', function(t){
             done(true);
         }, 100);
     })
-    (['*', 'result'], function(error, result){
+    (['*', 'result'], function(error){
         t.ok(error, 'result handler got error');
     })
     (['*'], function(error){
@@ -294,7 +294,7 @@ test('generic error handlers', function(t){
     (['result'], function(result){
         t.ok(result);
     })
-    (['*'], function(error){
+    (['*'], function(){
         t.fail();
     });
 });
@@ -340,7 +340,7 @@ test('task after error', function(t){
             done();
         }, 200);
     })
-    (['foo'], function(error, shouldBeDoneFn){
+    (['foo'], function(){
         t.fail();
     });
 });
@@ -360,13 +360,13 @@ test('multiple named errors', function(t){
             done(true);
         }, 100);
     })
-    (['*task1','*task2','result'], function(task1error, task2error, result){
+    (['*task1','*task2','result'], function(){
         t.fail();
     })
     (['*task1','*result'], function(task1error, resultError){
         t.notOk(task1error);
         t.ok(resultError);
-    })
+    });
 });
 
 test('multiple named errors 2', function(t){
@@ -379,14 +379,14 @@ test('multiple named errors 2', function(t){
     ('task2', function(done){
         done();
     })
-    ('result', ['task1'], function(task1, done){
+    ('result', ['task1'], function(){
         t.fail();
     })
     (['*task1','*task2','result'], function(task1error, task2error, result){
         t.ok(task1error);
         t.notOk(task2error);
         t.notOk(result);
-    })
+    });
 });
 
 test('stupid dep list', function(t){
@@ -401,6 +401,21 @@ test('stupid dep list', function(t){
             (['foo', ['bar']], function(){});
         },
         /dependency was not a string: bar in task: 0__returnless/
+    );
+});
+
+test('stupid dep list 2', function(t){
+    t.plan(1);
+
+    t.throws(
+        function(){
+            kgo
+            ('*foo', function(done) {
+                done(null, 1, 2);
+            })
+            (['*foo'], function(){});
+        },
+        /Task names can not begin with */
     );
 });
 
@@ -439,8 +454,8 @@ test('after in flight', function(t){
         setTimeout(function(){
             x('bar', function(done){
                 done();
-            })
-        }, 50)
+            });
+        }, 50);
     });
 });
 
