@@ -1,5 +1,6 @@
 var run = require('./run'),
-    cpsenize = require('cpsenize');
+    cpsenize = require('cpsenize'),
+    symbols = require('./symbols');
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -63,12 +64,6 @@ function newKgo(){
             throw new Error('No function provided for task number ' + Object.keys(tasks).length + ' (' + names + ')');
         }
 
-        for(var i = 0; i < names.length; i++){
-            if(names[i] in results){
-                throw new Error('A default with the same name as this task (' + names[i] + ') has already been set');
-            }
-        }
-
         if(!dependencies){
             dependencies = [];
         }
@@ -80,8 +75,16 @@ function newKgo(){
         });
 
         names.map(function(name){
+            if(name in results){
+                throw new Error('A default with the same name as this task (' + name + ') has already been set');
+            }
+
             if(name in tasks){
                 throw new Error('A task with the same name (' + name + ') is aready defined');
+            }
+
+            if(name.match(symbols.errorDependency)){
+                throw new Error('Task names can not begin with ' + symbols.errorSymbol);
             }
 
             tasks[name] = {
