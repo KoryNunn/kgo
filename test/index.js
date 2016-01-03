@@ -505,3 +505,22 @@ test('must have argmuents', function(t){
         t.notOk(~error.stack.indexOf('kgo'));
     });
 });
+
+test('done called more than once', function(t){
+    t.plan(2);
+
+    var d = require('domain').create();
+
+    d.on('error', function(error){
+        t.ok(error instanceof Error, 'error is instance of Error');
+        t.equal(error.message, 'Step callback called more than once for task: someTask');
+    });
+
+    d.run(function(){
+        kgo
+        ('someTask', function(done){
+            done();
+            done();
+        });
+    });
+});

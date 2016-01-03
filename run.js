@@ -10,12 +10,22 @@ function Step(task, args, done){
 Step.prototype.run = function(){
     var step = this;
 
-    this._task.fn.apply(this, this._args.concat([function(error){
+    function complete(error){
+
+        if(step._complete){
+            throw new Error('Step callback called more than once for task: ' + step._task.names);
+        }
+
+        step._complete = true;
+
         var result = Array.prototype.slice.call(arguments, 1);
         step.done(error, result);
-    }]));
+    }
+
+    this._task.fn.apply(this, this._args.concat([complete]));
 };
 Step.prototype.done = function(error, result){
+
     if(error){
         if(error instanceof Error){
             stackSlice(error, __dirname, true);
