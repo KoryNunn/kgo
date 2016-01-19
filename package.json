@@ -37,7 +37,6 @@
     ]
   },
   "dependencies": {
-    "cpsenize": "^1.0.0",
-    "stack-slice": "^1.0.1"
+    "cpsenize": "^1.0.0"
   }
 }

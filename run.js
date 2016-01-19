@@ -1,5 +1,4 @@
-var stackSlice = require('stack-slice'),
-    symbols = require('./symbols'),
+var symbols = require('./symbols'),
     cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
 
 function cleanError(stack, error){
