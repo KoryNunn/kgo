@@ -1,7 +1,6 @@
 var run = require('./run'),
     cpsenize = require('cpsenize'),
-    symbols = require('./symbols'),
-    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
+    symbols = require('./symbols');
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -75,6 +74,8 @@ function newKgo(){
             }
         });
 
+        var stack = new Error().stack.match(/(\s+?at[^]*$)/)[1];
+
         names.map(function(name){
             if(name in results){
                 throw new Error('A default with the same name as this task (' + name + ') has already been set');
@@ -91,7 +92,8 @@ function newKgo(){
             tasks[name] = {
                 names: names,
                 args: dependencies,
-                fn: fn
+                fn: fn,
+                stack: stack
             };
         });
 
@@ -100,23 +102,9 @@ function newKgo(){
 
     kgoFn.apply(null, arguments);
 
-    var stack = new Error().stack.match(/(\s+?at[^]*$)/)[1];
-
-    function createError(error){
-        var currentStack = '';
-        if(error instanceof Error){
-            currentStack = error.stack.replace(cleanErrorRegex, '');
-        }else{
-            error = new Error(error);
-            error.stack = '';
-        }
-        error.stack = 'Error: ' + error.message + currentStack + stack;
-        return error;
-    }
-
     defer(function __kgoDeferredCallback__(){
         inFlight = true;
-        run(tasks, results, kgoFn, createError);
+        run(tasks, results, kgoFn);
     });
 
     return kgoFn;

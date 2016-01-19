@@ -1,19 +1,31 @@
 var stackSlice = require('stack-slice'),
-    symbols = require('./symbols');
+    symbols = require('./symbols'),
+    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
 
+function cleanError(stack, error){
+    var currentStack = '';
+    if(error instanceof Error){
+        currentStack = error.stack.replace(cleanErrorRegex, '');
+    }else{
+        error = new Error(error);
+        error.stack = '';
+    }
+    error.stack = 'Error: ' + error.message + currentStack + stack;
+    return error;
+}
 
 function Step(task, args, done){
     this._task = task;
     this._args = args;
     this._done = done;
 }
-Step.prototype.run = function __kgoRunStep__(cleanError){
+Step.prototype.run = function __kgoRunStep__(){
     var step = this;
 
     function complete(error){
 
         if(step._complete){
-            throw cleanError('Step callback called more than once for task: ' + step._task.names);
+            throw cleanError(step._task.stack, 'Step callback called more than once for task: ' + step._task.names);
         }
 
         step._complete = true;
@@ -21,7 +33,7 @@ Step.prototype.run = function __kgoRunStep__(cleanError){
         var result = Array.prototype.slice.call(arguments, 1);
 
         if(error instanceof Error){
-            error = cleanError(error);
+            error = cleanError(step._task.stack, error);
         }
 
         step.done(error, result);
@@ -37,7 +49,7 @@ Step.prototype.done = function(error, result){
     this._done(null, result);
 };
 
-function runTask(task, results, errors, aboutToRun, cleanError, done){
+function runTask(task, results, errors, aboutToRun, done){
     var names = task.names,
         dependants = task.args,
         args = [],
@@ -106,10 +118,10 @@ function runTask(task, results, errors, aboutToRun, cleanError, done){
     });
 
     aboutToRun(names);
-    step.run(cleanError);
+    step.run();
 }
 
-function run(tasks, results, errors, kgo, cleanError){
+function run(tasks, results, errors, kgo){
     var currentTask,
         noMoreTasks = true;
 
@@ -126,7 +138,6 @@ function run(tasks, results, errors, kgo, cleanError){
                     delete tasks[name];
                 });
             },
-            cleanError,
             function(names, taskError, taskResults){
                 if(taskError && !errors[symbols.errorSymbol]){
                     errors[symbols.errorSymbol] = taskError;
@@ -140,13 +151,13 @@ function run(tasks, results, errors, kgo, cleanError){
                     }
                 }
 
-                run(tasks, results, errors, kgo, cleanError);
+                run(tasks, results, errors, kgo);
             }
         );
     }
 }
 
-function cloneAndRun(tasks, results, kgo, cleanError){
+function cloneAndRun(tasks, results, kgo){
     var todo = {},
         errors = {};
 
@@ -156,7 +167,7 @@ function cloneAndRun(tasks, results, kgo, cleanError){
         var taskName = dependencyName.match(/[!*]?(.*)/)[1];
 
         if(dependencyName !== symbols.errorSymbol && !(taskName in tasks) && !(taskName in results)){
-            throw cleanError('No task or result has been defined for dependency: ' + taskName);
+            throw cleanError(this.stack, 'No task or result has been defined for dependency: ' + taskName);
         }
     }
 
@@ -164,10 +175,10 @@ function cloneAndRun(tasks, results, kgo, cleanError){
         todo[key] = tasks[key];
         kgo._taskCount ++;
 
-        tasks[key].args.map(checkDependencyIsDefined);
+        tasks[key].args.map(checkDependencyIsDefined, tasks[key]);
     }
 
-    run(todo, results, errors, kgo, cleanError);
+    run(todo, results, errors, kgo);
 }
 
 module.exports = cloneAndRun;
