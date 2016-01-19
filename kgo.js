@@ -1,6 +1,7 @@
 var run = require('./run'),
     cpsenize = require('cpsenize'),
-    symbols = require('./symbols');
+    symbols = require('./symbols'),
+    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -99,9 +100,23 @@ function newKgo(){
 
     kgoFn.apply(null, arguments);
 
-    defer(function(){
+    var stack = new Error().stack.match(/(\s+?at[^]*$)/)[1];
+
+    function createError(error){
+        var currentStack = '';
+        if(error instanceof Error){
+            currentStack = error.stack.replace(cleanErrorRegex, '');
+        }else{
+            error = new Error(error);
+            error.stack = '';
+        }
+        error.stack = 'Error: ' + error.message + currentStack + stack;
+        return error;
+    }
+
+    defer(function __kgoDeferredCallback__(){
         inFlight = true;
-        run(tasks, results, kgoFn);
+        run(tasks, results, kgoFn, createError);
     });
 
     return kgoFn;
