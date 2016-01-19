@@ -11,7 +11,7 @@ function newKgo(){
         inFlight,
         defaultsDefined;
 
-    function kgoFn(){
+    function addKgoTask(){
         if(!arguments.length){
             throw new Error('kgo must must be called with a task or defaults');
         }
@@ -48,7 +48,7 @@ function newKgo(){
                 results[key] = defaults[key];
             }
             defaultsDefined = true;
-            return kgoFn;
+            return addKgoTask;
         }
 
         if(Array.isArray(arguments[argIndex])){
@@ -97,17 +97,17 @@ function newKgo(){
             };
         });
 
-        return kgoFn;
+        return addKgoTask;
     }
 
-    kgoFn.apply(null, arguments);
+    addKgoTask.apply(null, arguments);
 
     defer(function __kgoDeferredCallback__(){
         inFlight = true;
-        run(tasks, results, kgoFn);
+        run(tasks, results, addKgoTask);
     });
 
-    return kgoFn;
+    return addKgoTask;
 }
 
 module.exports = newKgo;
