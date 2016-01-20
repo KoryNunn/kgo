@@ -475,7 +475,7 @@ test('tasks with ! in dependency name', function(t){
     });
 });
 
-test('must have argmuents', function(t){
+test('must have arguments', function(t){
     t.plan(2);
 
     t.throws(
@@ -492,7 +492,7 @@ test('must have argmuents', function(t){
     );
 });
 
-test('must have argmuents', function(t){
+test('stack is not poluted with kgo', function(t){
     t.plan(1);
 
     function someTask(done){
@@ -502,7 +502,7 @@ test('must have argmuents', function(t){
     kgo
     ('someTask', someTask)
     (['*'], function(error){
-        t.notOk(~error.stack.indexOf('kgo'));
+        t.notOk(~error.stack.indexOf('kgo/run.js'));
     });
 });
 

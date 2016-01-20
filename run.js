@@ -1,24 +1,40 @@
-var stackSlice = require('stack-slice'),
-    symbols = require('./symbols');
+var symbols = require('./symbols'),
+    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
 
+function cleanError(stack, error){
+    var currentStack = '';
+    if(error instanceof Error){
+        currentStack = error.stack.replace(cleanErrorRegex, '');
+    }else{
+        error = new Error(error);
+        error.stack = '';
+    }
+    error.stack = 'Error: ' + error.message + currentStack + stack;
+    return error;
+}
 
 function Step(task, args, done){
     this._task = task;
     this._args = args;
     this._done = done;
 }
-Step.prototype.run = function(){
+Step.prototype.run = function __kgoRunStep__(){
     var step = this;
 
     function complete(error){
 
         if(step._complete){
-            throw new Error('Step callback called more than once for task: ' + step._task.names);
+            throw cleanError(step._task.stack, 'Step callback called more than once for task: ' + step._task.names);
         }
 
         step._complete = true;
 
         var result = Array.prototype.slice.call(arguments, 1);
+
+        if(error instanceof Error){
+            error = cleanError(step._task.stack, error);
+        }
+
         step.done(error, result);
     }
 
@@ -27,9 +43,6 @@ Step.prototype.run = function(){
 Step.prototype.done = function(error, result){
 
     if(error){
-        if(error instanceof Error){
-            stackSlice(error, __dirname, true);
-        }
         return this._done(error);
     }
     this._done(null, result);
@@ -153,7 +166,7 @@ function cloneAndRun(tasks, results, kgo){
         var taskName = dependencyName.match(/[!*]?(.*)/)[1];
 
         if(dependencyName !== symbols.errorSymbol && !(taskName in tasks) && !(taskName in results)){
-            throw new Error('No task or result has been defined for dependency: ' + taskName);
+            throw cleanError(this.stack, 'No task or result has been defined for dependency: ' + taskName);
         }
     }
 
@@ -161,7 +174,7 @@ function cloneAndRun(tasks, results, kgo){
         todo[key] = tasks[key];
         kgo._taskCount ++;
 
-        tasks[key].args.map(checkDependencyIsDefined);
+        tasks[key].args.map(checkDependencyIsDefined, tasks[key]);
     }
 
     run(todo, results, errors, kgo);

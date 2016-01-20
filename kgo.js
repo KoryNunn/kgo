@@ -11,7 +11,7 @@ function newKgo(){
         inFlight,
         defaultsDefined;
 
-    function kgoFn(){
+    function addKgoTask(){
         if(!arguments.length){
             throw new Error('kgo must must be called with a task or defaults');
         }
@@ -48,7 +48,7 @@ function newKgo(){
                 results[key] = defaults[key];
             }
             defaultsDefined = true;
-            return kgoFn;
+            return addKgoTask;
         }
 
         if(Array.isArray(arguments[argIndex])){
@@ -74,6 +74,8 @@ function newKgo(){
             }
         });
 
+        var stack = new Error().stack.match(/(\s+?at[^]*$)/)[1];
+
         names.map(function(name){
             if(name in results){
                 throw new Error('A default with the same name as this task (' + name + ') has already been set');
@@ -90,21 +92,22 @@ function newKgo(){
             tasks[name] = {
                 names: names,
                 args: dependencies,
-                fn: fn
+                fn: fn,
+                stack: stack
             };
         });
 
-        return kgoFn;
+        return addKgoTask;
     }
 
-    kgoFn.apply(null, arguments);
+    addKgoTask.apply(null, arguments);
 
-    defer(function(){
+    defer(function __kgoDeferredCallback__(){
         inFlight = true;
-        run(tasks, results, kgoFn);
+        run(tasks, results, addKgoTask);
     });
 
-    return kgoFn;
+    return addKgoTask;
 }
 
 module.exports = newKgo;
