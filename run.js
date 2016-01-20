@@ -1,5 +1,5 @@
 var symbols = require('./symbols'),
-    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*)__kgoDeferredCallback__[^]+?\n[^]+?(?:\n|$))/;
+    cleanErrorRegex = /((?:\n.*__kgoRunStep__[^]+|\n.*__kgoDeferredCallback__)[^]+?\n[^]+?(?:\n|$))/;
 
 function cleanError(stack, error){
     var currentStack = '';
@@ -38,7 +38,11 @@ Step.prototype.run = function __kgoRunStep__(){
         step.done(error, result);
     }
 
-    this._task.fn.apply(this, this._args.concat([complete]));
+    try{
+        this._task.fn.apply(this, this._args.concat([complete]));
+    }catch(error){
+        throw cleanError(step._task.stack, error);
+    }
 };
 Step.prototype.done = function(error, result){
 

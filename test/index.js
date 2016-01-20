@@ -506,6 +506,31 @@ test('stack is not poluted with kgo', function(t){
     });
 });
 
+test('throw stack is not poluted with kgo', function(t){
+    t.plan(3);
+
+    function someTask(done){
+        throw 'ETOOMUCHFOO';
+    }
+
+    var d = require('domain').create();
+
+    d.on('error', function(error){
+        t.ok(~error.stack.indexOf('ETOOMUCHFOO'));
+        t.ok(~error.stack.indexOf('aboutToFoo'));
+        t.notOk(~error.stack.indexOf('kgo/run.js'));
+    });
+
+    function aboutToFoo(){
+        d.run(function(){
+            kgo
+            ('someTask', someTask);
+        });
+    }
+
+    aboutToFoo();
+});
+
 test('done called more than once', function(t){
     t.plan(2);
 
