@@ -103,12 +103,12 @@ function runTask(task, results, errors, aboutToRun, done){
                 continue;
             }
 
-            if(hasError){
-                args.push(undefined);
+            if(ignore){
                 continue;
             }
 
-            if(ignore){
+            if(hasError){
+                args.push(undefined);
                 continue;
             }
 
