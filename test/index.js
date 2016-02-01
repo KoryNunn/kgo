@@ -548,3 +548,29 @@ test('done called more than once', function(t){
         });
     });
 });
+
+test('error steps with a !dependency dont mess with argument length when error is async', function(t){
+    t.plan(1);
+
+    kgo
+    ({foo: 'foo'})
+    ('bar', function(done){
+        doAsync(done, 'barError');
+    })
+    (['*bar', '!foo'], function(){
+        t.equal(arguments.length, 2, 'correct number of arguments');
+    });
+});
+
+test('error steps with a !dependency dont mess with argument length when error is synchronous', function(t){
+    t.plan(1);
+
+    kgo
+    ({foo: 'foo'})
+    ('bar', function(done){
+        done('barError');
+    })
+    (['*', '!foo'], function(){
+        t.equal(arguments.length, 2, 'correct number of arguments');
+    });
+});
