@@ -28,9 +28,11 @@ function newKgo(){
 
         var names = Array.prototype.slice.call(arguments, 0, argIndex),
             dependencies,
-            fn;
+            fn,
+            isReturnless;
 
         if(!names.length){
+            isReturnless = true;
             names.push((returnlessId++).toString() + '__returnless');
         }
 
@@ -90,6 +92,7 @@ function newKgo(){
             }
 
             tasks[name] = {
+                returnless: isReturnless,
                 names: names,
                 args: dependencies,
                 fn: fn,

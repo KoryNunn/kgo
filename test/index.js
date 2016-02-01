@@ -176,9 +176,8 @@ test('multiple datas', function(t){
     ('foo', 'bar', function(done){
         done(null, 1,2);
     })
-    (['foo'], function(foo, done){
+    (['foo'], function(foo){
         t.equal(foo, 1);
-        done();
     })
     (['bar'], function(bar){
         t.equal(bar, 2);
@@ -313,9 +312,9 @@ test('complete style error handling', function(t){
             done(null, initial);
         }, 100);
     })
-    (['*', '!result'], function(error, shouldBeDoneFn){
+    (['*', '!result'], function(error){
         t.notOk(error);
-        t.equal(typeof shouldBeDoneFn, 'function');
+        t.equal(arguments.length, 1, 'no result, no done');
     });
 });
 
