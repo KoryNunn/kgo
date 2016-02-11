@@ -39,7 +39,11 @@ Step.prototype.run = function __kgoRunStep__(){
     }
 
     try{
-        this._task.fn.apply(this, this._args.concat([complete]));
+        var args = this._args.slice();
+        if(!this._task.returnless){
+            args.push(complete);
+        }
+        this._task.fn.apply(this, args);
     }catch(error){
         throw cleanError(step._task.stack, error);
     }
