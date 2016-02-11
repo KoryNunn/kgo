@@ -107,6 +107,17 @@ kgo
 });
 ```
 
+#### Note: Anonymous tasks will not be passed a `done` function:
+
+```
+kgo
+('foo', getFoo) // getFoo will be passed (callback)
+('bar', ['foo'], getFoo) // getFoo will be passed (bar, callback)
+(['*', 'bar'], function(error, bar){
+    // arguments.length will be 2
+})
+```
+
 ## Defaults
 
 You can define default data for use in later tasks by passing an object into kgo, where the keys in the objects will map to dependency names:
