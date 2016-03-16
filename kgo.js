@@ -76,9 +76,10 @@ function newKgo(){
             }
         });
 
-        // Firefox/safari dont have a normal stacks..?
+        // Firefox/safari/IE dont have a normal stacks..?
         // Meh, no stack for them, no one develops in them anyway.
-        var stackMatch = new Error().stack.match(/(\s+?at[^]*$)/),
+        var tempError = new Error(),
+            stackMatch = (tempError.stack || '').match(/(\s+?at[^]*$)/),
             stack = stackMatch ? stackMatch[1] : '';
 
         names.map(function(name){
