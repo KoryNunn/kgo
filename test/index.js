@@ -558,7 +558,7 @@ test('error steps with a !dependency dont mess with argument length when error i
         doAsync(done, 'barError');
     })
     (['*bar', '!foo'], function(){
-        t.equal(arguments.length, 2, 'correct number of arguments');
+        t.equal(arguments.length, 1, 'correct number of arguments');
     });
 });
 
@@ -571,6 +571,6 @@ test('error steps with a !dependency dont mess with argument length when error i
         done('barError');
     })
     (['*', '!foo'], function(){
-        t.equal(arguments.length, 2, 'correct number of arguments');
+        t.equal(arguments.length, 1, 'correct number of arguments');
     });
 });
