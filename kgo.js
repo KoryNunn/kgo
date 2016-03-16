@@ -4,6 +4,14 @@ var run = require('./run'),
 
 var defer = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
+function getStack(error){
+    // Firefox/safari/IE dont have a normal stacks..?
+    // Meh, no stack for them, no one develops in them anyway.
+    var stackMatch = (error.stack || '').match(/(\s+?at[^]*$)/);
+
+    return stackMatch ? stackMatch[1] : '';
+}
+
 function newKgo(){
     var returnlessId = 0,
         tasks = {},
@@ -76,11 +84,7 @@ function newKgo(){
             }
         });
 
-        // Firefox/safari/IE dont have a normal stacks..?
-        // Meh, no stack for them, no one develops in them anyway.
-        var tempError = new Error(),
-            stackMatch = (tempError.stack || '').match(/(\s+?at[^]*$)/),
-            stack = stackMatch ? stackMatch[1] : '';
+        var stack = getStack(new Error());
 
         names.map(function(name){
             if(name in results){
