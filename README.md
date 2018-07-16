@@ -3,6 +3,10 @@ kgo
 
 Stupidly easy flow control.
 
+## Depricated
+
+While kgo still works fine, I've since moved my efforts over to the much cleaner, faster, better tested, more flexible, and better maintained, [righto](https://github.com/korynunn/righto), to which you can easily and incrementally migrate to if you want.
+
 ## Why
 
 flow contol should be seamless, you should be able to say what you want done, and say kgo.
