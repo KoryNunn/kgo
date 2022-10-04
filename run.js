@@ -4,7 +4,7 @@ var symbols = require('./symbols'),
 function cleanError(stack, error){
     var currentStack = '';
     if(error instanceof Error){
-        currentStack = error.stack.replace(cleanErrorRegex, '');
+        currentStack = error.stack ? error.stack.replace(cleanErrorRegex, '') : currentStack;
     }else{
         error = new Error(error);
         error.stack = '';
