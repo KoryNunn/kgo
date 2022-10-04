@@ -574,3 +574,20 @@ test('error steps with a !dependency dont mess with argument length when error i
         t.equal(arguments.length, 1, 'correct number of arguments');
     });
 });
+
+test('error instances with no stack dont explode', function(t){
+    t.plan(1);
+
+    kgo
+    ('result', function(done){
+        var badError = new Error('i have no stack');
+        badError.stack = undefined
+        done(badError)
+    })
+    (['result'], function(result){
+        t.fail('Error should cause this to be skipped');
+    })
+    (['*'], function(error, result){
+        t.ok(error, 'Errors without a stack are handled correctly');
+    });
+});
